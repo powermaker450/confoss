@@ -53,14 +53,14 @@ export async function execute(interaction: CommandInteraction) {
   const message = await (
     BotClient.channels.cache.get(confessChannel!) as TextChannel
   )
-    // @ts-ignore
     .send(
+      // @ts-ignore
       `# Confession ${messageId}:\n${interaction.options.getString("message")}`,
     );
 
   await (BotClient.channels.cache.get(adminChannel!) as TextChannel)
-    // @ts-ignore
     .send(
+      // @ts-ignore
       `# Confession ${messageId}:\n### Author: ${interaction.user.displayName}\n### Author ID: ${interaction.user.id}\n${interaction.options.getString("message")}`,
     );
 
