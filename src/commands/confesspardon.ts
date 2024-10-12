@@ -14,9 +14,13 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 
-import { CommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import {
+  CommandInteraction,
+  PermissionFlagsBits,
+  SlashCommandBuilder,
+} from "discord.js";
 import { dt } from "../main";
 import Logger from "../utils/Logger";
 
@@ -25,30 +29,30 @@ const logger = new Logger("(/) confesspardon");
 export const data = new SlashCommandBuilder()
   .setName("confesspardon")
   .setDescription("Unbans a user from confessions")
-  .addStringOption(option => 
+  .addStringOption((option) =>
     option
       .setName("id")
       .setDescription("The confession ID to unban")
-      .setRequired(true)
+      .setRequired(true),
   )
-  .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
+  .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages);
 
 export function execute(interaction: CommandInteraction) {
   const result = dt.removeBan(
     interaction.guild?.id!,
     // @ts-ignore
-    interaction.options.getString("id")
+    interaction.options.getString("id"),
   );
 
   try {
     return result
       ? interaction.reply({
           content: "User was unbanned.",
-          ephemeral: true
+          ephemeral: true,
         })
       : interaction.reply({
           content: "No confession with that ID was found.",
-          ephemeral: true
+          ephemeral: true,
         });
   } catch (err) {
     logger.error("An error occured:", err);

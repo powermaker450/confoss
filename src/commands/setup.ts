@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 
 import {
   ActionRowBuilder,
@@ -131,7 +131,7 @@ export async function execute(interaction: CommandInteraction) {
         interaction.followUp({
           content: "No channel selected. Try again.",
           ephemeral: true,
-          components: []
+          components: [],
         });
     });
   } catch (err) {

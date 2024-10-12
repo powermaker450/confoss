@@ -14,9 +14,14 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 
-import { CommandInteraction, EmbedBuilder, SlashCommandBuilder, TextChannel } from "discord.js";
+import {
+  CommandInteraction,
+  EmbedBuilder,
+  SlashCommandBuilder,
+  TextChannel,
+} from "discord.js";
 import { dt } from "../main";
 import { BotClient } from "../bot";
 import getRandomColor from "../utils/getRandomColor";
@@ -27,12 +32,9 @@ const logger = new Logger("(/) confessdel");
 export const data = new SlashCommandBuilder()
   .setName("confessdel")
   .setDescription("Deletes a confession")
-  .addStringOption(option => 
-    option
-      .setName("id")
-      .setDescription("The confession id")
-      .setRequired(true)
-  )
+  .addStringOption((option) =>
+    option.setName("id").setDescription("The confession id").setRequired(true),
+  );
 
 export async function execute(interaction: CommandInteraction) {
   if (!dt.getGuildInfo(interaction.guild?.id!)) {
@@ -42,40 +44,47 @@ export async function execute(interaction: CommandInteraction) {
       ephemeral: true,
     });
   }
-  
+
   // @ts-ignore
   const idVal = interaction.options.getString("id");
   const result = dt.getConfession(interaction.guild?.id!, idVal);
 
   if (result) {
     try {
-      const confession = dt.getConfession(interaction.guild?.id!, idVal)?.messageId;
-      const channelId = dt.getGuildInfo(interaction.guild?.id!)?.settings.confessChannel!;
+      const confession = dt.getConfession(
+        interaction.guild?.id!,
+        idVal,
+      )?.messageId;
+      const channelId = dt.getGuildInfo(interaction.guild?.id!)?.settings
+        .confessChannel!;
       const emptyEmbed = new EmbedBuilder()
         .setColor(getRandomColor())
         .setTitle("Confession Deleted")
         // @ts-ignore
         .setDescription("[Confession Deleted]");
 
-      await (BotClient.channels.cache.get(channelId) as TextChannel).messages.fetch(confession!).then(e => {
-        e.edit({
-          embeds: [emptyEmbed]
-        })
-      });
+      await (BotClient.channels.cache.get(channelId) as TextChannel).messages
+        .fetch(confession!)
+        .then((e) => {
+          e.edit({
+            embeds: [emptyEmbed],
+          });
+        });
 
       dt.delConfesssion(interaction, idVal);
 
       return interaction.reply({
         content: "Confession removed.",
-        ephemeral: true
+        ephemeral: true,
       });
     } catch (err) {
       logger.error("An error occured:", err);
     }
   } else {
     return interaction.reply({
-      content: "Either the confession wasn't found or you may not be allowed to remove it.",
-      ephemeral: true
+      content:
+        "Either the confession wasn't found or you may not be allowed to remove it.",
+      ephemeral: true,
     });
   }
 }

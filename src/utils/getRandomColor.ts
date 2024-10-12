@@ -14,8 +14,8 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 
-const getRandomColor = () => (Math.random() * 0xFFFFFF << 0);
+const getRandomColor = () => (Math.random() * 0xffffff) << 0;
 
 export default getRandomColor;

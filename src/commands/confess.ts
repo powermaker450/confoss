@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 
 import {
   CommandInteraction,
@@ -33,7 +33,7 @@ const logger = new Logger("(/) confess");
 export const data = new SlashCommandBuilder()
   .setName("confess")
   .setDescription("Send a confession")
-  .addStringOption(option =>
+  .addStringOption((option) =>
     option
       .setName("message")
       .setRequired(true)
@@ -45,7 +45,7 @@ export async function execute(interaction: CommandInteraction) {
     if (dt.isBanned(interaction.guild?.id!, interaction.user.id)) {
       return interaction.reply({
         content: "You are banned from confessions in this server!",
-        ephemeral: true
+        ephemeral: true,
       });
     }
 
@@ -56,7 +56,6 @@ export async function execute(interaction: CommandInteraction) {
         ephemeral: true,
       });
     }
-
 
     const confessChannel = dt.getGuildInfo(interaction.guild?.id!)?.settings
       .confessChannel;
@@ -72,35 +71,40 @@ export async function execute(interaction: CommandInteraction) {
       .setTitle(`Anonymous Confession \`${messageId}\``)
       // @ts-ignore
       .setDescription(messageContent);
-    
+
     const adminConfessionEmbed = new EmbedBuilder()
       .setColor(color)
       .setTitle(`Anonymous Confession \`${messageId}\``)
       // @ts-ignore
       .setDescription(messageContent)
-      .addFields({
+      .addFields(
+        {
           name: "Author",
-          value: interaction.user.displayName
+          value: interaction.user.displayName,
         },
         {
           name: "Author ID",
-          value: interaction.user.id
-        }
+          value: interaction.user.id,
+        },
       );
 
     const message = await (
       BotClient.channels.cache.get(confessChannel!) as TextChannel
-    )
-      .send({
-        embeds: [userConfessionEmbed]
-      });
+    ).send({
+      embeds: [userConfessionEmbed],
+    });
 
-    await (BotClient.channels.cache.get(adminChannel!) as TextChannel)
-      .send({
-        embeds: [adminConfessionEmbed]
-      });
+    await (BotClient.channels.cache.get(adminChannel!) as TextChannel).send({
+      embeds: [adminConfessionEmbed],
+    });
 
-    dt.addConfession(message, messageId, interaction.user.displayName, interaction.user.id, messageContent);
+    dt.addConfession(
+      message,
+      messageId,
+      interaction.user.displayName,
+      interaction.user.id,
+      messageContent,
+    );
 
     return interaction.reply({
       content: "Confession sent!",
