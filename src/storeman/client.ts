@@ -21,6 +21,7 @@ import crypto from "crypto";
 import { Confession, GuildData, GuildSettings } from "./types";
 import { DATA_DIR } from "./config";
 import { CommandInteraction, Message } from "discord.js";
+import Logger from "../utils/Logger";
 
 export class StoreMan {
   public static readonly fullPath: string =
@@ -38,13 +39,14 @@ export class StoreMan {
     id: string,
     author: string,
     authorId: string,
+    content: string
   ): Confession {
     return {
       id: id,
       messageId: message.id,
       author: author,
       authorId: authorId,
-      content: message.content.replace(/(# Confession .{4}:\n)/, ""),
+      content: content
     };
   }
 
@@ -116,7 +118,7 @@ export class StoreMan {
   }
 
   // Attempts to add a confession. Returns true if the confession is sent, false if otherwise.
-  public addConfession(message: Message, id: string, author: string, authorId: string): boolean {
+  public addConfession(message: Message, id: string, author: string, authorId: string, content: string): boolean {
     const guildId = message.guild?.id;
 
     for (const guild of this.data) {
@@ -126,7 +128,7 @@ export class StoreMan {
           return false;
         }
 
-        guild.confessions.push(StoreMan.toConfession(message, id, author, authorId));
+        guild.confessions.push(StoreMan.toConfession(message, id, author, authorId, content));
         this.saveFile();
         return true;
       }
@@ -141,6 +143,7 @@ export class StoreMan {
     for (const guild of this.data) {
       if (guild.id === guildId) {
         for (const confession of guild.confessions) {
+          Logger.log(confession);
           if (confession.id === confessionId) {
             return confession;
           }

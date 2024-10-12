@@ -16,9 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CommandInteraction, IntegrationApplication, SlashCommandBuilder, TextChannel } from "discord.js";
+import { CommandInteraction, EmbedBuilder, SlashCommandBuilder, TextChannel } from "discord.js";
 import { dt } from "../main";
 import { BotClient } from "../bot";
+import getRandomColor from "../utils/getRandomColor";
+import Logger from "../utils/Logger";
 
 export const data = new SlashCommandBuilder()
   .setName("confessdel")
@@ -41,19 +43,24 @@ export async function execute(interaction: CommandInteraction) {
   
   // @ts-ignore
   const idVal = interaction.options.getString("id");
-
-  const result = dt.delConfesssion(
-    interaction,
-    idVal
-  );
+  const result = dt.getConfession(interaction.guild?.id!, idVal);
 
   if (result) {
     const confession = dt.getConfession(interaction.guild?.id!, idVal)?.messageId;
     const channelId = dt.getGuildInfo(interaction.guild?.id!)?.settings.confessChannel!;
+    const emptyEmbed = new EmbedBuilder()
+      .setColor(getRandomColor())
+      .setTitle("Confession Deleted")
+      // @ts-ignore
+      .setDescription("[Confession Deleted]");
 
-    await (BotClient.channels.cache.get(channelId) as TextChannel).messages.fetch(confession!).then(message => {
-      message.delete();
+    await (BotClient.channels.cache.get(channelId) as TextChannel).messages.fetch(confession!).then(e => {
+      e.edit({
+        embeds: [emptyEmbed]
+      })
     });
+
+    dt.delConfesssion(interaction, idVal);
 
     return interaction.reply({
       content: "Confession removed.",
