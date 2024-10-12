@@ -20,7 +20,6 @@ import { CommandInteraction, EmbedBuilder, SlashCommandBuilder, TextChannel } fr
 import { dt } from "../main";
 import { BotClient } from "../bot";
 import getRandomColor from "../utils/getRandomColor";
-import Logger from "../utils/Logger";
 
 export const data = new SlashCommandBuilder()
   .setName("confessdel")

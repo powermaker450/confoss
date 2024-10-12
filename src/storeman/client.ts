@@ -21,7 +21,6 @@ import crypto from "crypto";
 import { Confession, GuildData, GuildSettings } from "./types";
 import { DATA_DIR } from "./config";
 import { CommandInteraction, Message } from "discord.js";
-import Logger from "../utils/Logger";
 
 export class StoreMan {
   public static readonly fullPath: string =
@@ -143,7 +142,6 @@ export class StoreMan {
     for (const guild of this.data) {
       if (guild.id === guildId) {
         for (const confession of guild.confessions) {
-          Logger.log(confession);
           if (confession.id === confessionId) {
             return confession;
           }
