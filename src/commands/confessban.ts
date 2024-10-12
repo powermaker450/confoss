@@ -18,7 +18,6 @@
 
 import { CommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import { dt } from "../main";
-import Logger from "../utils/Logger";
 
 export const data = new SlashCommandBuilder()
   .setName("confessban")
@@ -32,9 +31,6 @@ export const data = new SlashCommandBuilder()
   .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers);
 
 export async function execute(interaction: CommandInteraction) {
-  // @ts-ignore
-  Logger.log(interaction.options.getString("id"));
-
   const result = dt.addBan(
     interaction.guild?.id!,
     // @ts-ignore
