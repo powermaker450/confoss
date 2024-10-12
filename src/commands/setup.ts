@@ -125,6 +125,8 @@ export async function execute(interaction: CommandInteraction) {
     !collected.size &&
       interaction.followUp({
         content: "No channel selected. Try again.",
+        ephemeral: true,
+        components: []
       });
   });
 }
