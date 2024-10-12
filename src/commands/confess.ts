@@ -63,13 +63,13 @@ export async function execute(interaction: CommandInteraction) {
   const messageId = StoreMan.genId();
   const userConfessionEmbed = new EmbedBuilder()
     .setColor(color)
-    .setTitle(`Anonymous Confession ${messageId}`)
+    .setTitle(`Anonymous Confession (ID ${messageId})`)
     // @ts-ignore
     .setDescription(`"${interaction.options.getString("message")}"`);
   
   const adminConfessionEmbed = new EmbedBuilder()
     .setColor(color)
-    .setTitle(`Anonymous Confession ${messageId}`)
+    .setTitle(`Anonymous Confession (ID ${messageId})`)
     // @ts-ignore
     .setDescription(`"${interaction.options.getString("message")}"`)
     .addFields({
