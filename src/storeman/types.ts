@@ -18,6 +18,7 @@
 
 export interface Confession {
   id: string;
+  messageId: string;
   author: string;
   authorId: string;
   content: string;

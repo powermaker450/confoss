@@ -16,12 +16,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import * as confess from "./confess";
+import * as confessban from "./confessban";
+import * as confesspardon from "./confesspardon";
 import * as ping from "./ping";
 import * as setup from "./setup";
-import * as confess from "./confess";
 
 export const commands = {
+  confess,
+  confessban,
+  confesspardon,
   ping,
   setup,
-  confess,
 };

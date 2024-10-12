@@ -37,11 +37,13 @@ export class StoreMan {
     message: Message,
     id: string,
     author: string,
+    authorId: string,
   ): Confession {
     return {
       id: id,
+      messageId: message.id,
       author: author,
-      authorId: message.author.id,
+      authorId: authorId,
       content: message.content.replace(/(# Confession .{4}:\n)/, ""),
     };
   }
@@ -113,14 +115,20 @@ export class StoreMan {
     return null;
   }
 
-  public addConfession(message: Message, id: string, author: string): void {
+  // Attempts to add a confession. Returns true if the confession is sent, false if otherwise.
+  public addConfession(message: Message, id: string, author: string, authorId: string): boolean {
     const guildId = message.guild?.id;
 
     for (const guild of this.data) {
       if (guild.id === guildId) {
-        guild.confessions.push(StoreMan.toConfession(message, id, author));
+        // If the author's user ID is in the ban list, don't let them post a confession.
+        if (this.isBanned(guildId, author)) {
+          return false;
+        }
+
+        guild.confessions.push(StoreMan.toConfession(message, id, author, authorId));
         this.saveFile();
-        return;
+        return true;
       }
     }
 
@@ -129,12 +137,91 @@ export class StoreMan {
     );
   }
 
-  public delConfesssion(interaction: CommandInteraction): void {
-    const guildId = interaction.guild?.id;
-    const userId = interaction.user.id;
+  public getConfession(guildId: string, confessionId: string): Confession | null {
+    for (const guild of this.data) {
+      if (guild.id === guildId) {
+        for (const confession of guild.confessions) {
+          if (confession.id === confessionId) {
+            return confession;
+          }
+        }
+      }
+    }
 
-    // Check if the user is allowed to delete that confesssion
-    // If so, delete it, else let them know that they can't delete that confesssion,
-    // or it wasn't found.
+    return null;
+  }
+
+  // Attempts to delete a confession. If it is sucessfully deleted, returns true, else false.
+  public delConfesssion({ guild, user }: CommandInteraction, confessionId: string): boolean {
+    const guildId = guild?.id;
+    const userId = user.id;
+
+    for (const guild of this.data) {
+      if (guild.id === guildId) {
+        for (const confession of guild.confessions) {
+          if (confession.authorId === userId) {
+            guild.confessions = guild.confessions.filter(confession => {
+              return confession.id !== confessionId;
+            });
+
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  // Check if a certain user is banned within a guild.
+  public isBanned(guildId: string, userId: string): boolean {
+    for (const guild of this.data) {
+      if (guild.id === guildId) {
+        for (const ban of guild.settings.bans) {
+          if (ban === userId) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  // Attempts to ban a user from confessions.
+  public addBan(guildId: string, confessionId: string): boolean {
+    const confession = this.getConfession(guildId, confessionId);
+
+    for (const guild of this.data) {
+      if (guild.id === guildId) {
+        if (confession) {
+          // Only add the user to the ban list if they aren't banned already
+          !this.isBanned(guildId, confession.authorId) && guild.settings.bans.push(confession.authorId!);
+
+          this.saveFile();
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  // Attempts to pardon a user from a ban. If sucessfully completed, returns true, false if otherwise.
+  public removeBan(guildId: string, confessionId: string): boolean {
+    for (const guild of this.data) {
+      if (guild.id === guildId) {
+        if (this.getConfession(guildId, confessionId)) {
+          guild.settings.bans = guild.settings.bans.filter(ban => {
+            return ban !== this.getConfession(guildId, confessionId)?.authorId!;
+          });
+
+          this.saveFile();
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 }

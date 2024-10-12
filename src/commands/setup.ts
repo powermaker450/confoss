@@ -22,6 +22,7 @@ import {
   ChannelType,
   CommandInteraction,
   ComponentType,
+  PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
 import { dt } from "../main";
@@ -29,7 +30,8 @@ import Logger from "../utils/Logger";
 
 export const data = new SlashCommandBuilder()
   .setName("setup")
-  .setDescription("Setup the bot.");
+  .setDescription("Setup the bot.")
+  .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild);
 
 export async function execute(interaction: CommandInteraction) {
   if (dt.checkSetup(interaction.guild?.id!)) {

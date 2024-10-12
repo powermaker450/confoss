@@ -28,7 +28,7 @@ import { StoreMan } from "../storeman";
 export const data = new SlashCommandBuilder()
   .setName("confess")
   .setDescription("Send a confession")
-  .addStringOption((option) =>
+  .addStringOption(option =>
     option
       .setName("message")
       .setRequired(true)
@@ -36,6 +36,14 @@ export const data = new SlashCommandBuilder()
   );
 
 export async function execute(interaction: CommandInteraction) {
+  
+  if (dt.isBanned(interaction.guild?.id!, interaction.user.id)) {
+    return interaction.reply({
+      content: "You are banned from confessions in this server!",
+      ephemeral: true
+    });
+  }
+
   if (!dt.getGuildInfo(interaction.guild?.id!)) {
     return interaction.reply({
       content:
@@ -64,7 +72,7 @@ export async function execute(interaction: CommandInteraction) {
       `# Confession ${messageId}:\n### Author: ${interaction.user.displayName}\n### Author ID: ${interaction.user.id}\n${interaction.options.getString("message")}`,
     );
 
-  dt.addConfession(message, messageId, interaction.user.displayName);
+  dt.addConfession(message, messageId, interaction.user.displayName, interaction.user.id);
 
   return interaction.reply({
     content: "Confession sent!",
