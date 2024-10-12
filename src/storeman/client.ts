@@ -189,6 +189,16 @@ export class StoreMan {
     return false;
   }
 
+  public getBans(guildId: string): string[] {
+    for (const guild of this.data) {
+      if (guild.id === guildId) {
+        return guild.settings.bans;
+      }
+    }
+
+    return [];
+  }
+
   // Attempts to ban a user from confessions.
   public addBan(guildId: string, confessionId: string): boolean {
     const confession = this.getConfession(guildId, confessionId);

@@ -18,12 +18,14 @@
 
 import {
   CommandInteraction,
+  EmbedBuilder,
   SlashCommandBuilder,
   TextChannel,
 } from "discord.js";
 import { BotClient } from "../bot";
 import { dt } from "../main";
 import { StoreMan } from "../storeman";
+import getRandomColor from "../utils/getRandomColor";
 
 export const data = new SlashCommandBuilder()
   .setName("confess")
@@ -36,7 +38,6 @@ export const data = new SlashCommandBuilder()
   );
 
 export async function execute(interaction: CommandInteraction) {
-  
   if (dt.isBanned(interaction.guild?.id!, interaction.user.id)) {
     return interaction.reply({
       content: "You are banned from confessions in this server!",
@@ -52,25 +53,46 @@ export async function execute(interaction: CommandInteraction) {
     });
   }
 
+
   const confessChannel = dt.getGuildInfo(interaction.guild?.id!)?.settings
     .confessChannel;
   const adminChannel = dt.getGuildInfo(interaction.guild?.id!)?.settings
     .modChannel;
 
+  const color = getRandomColor();
   const messageId = StoreMan.genId();
+  const userConfessionEmbed = new EmbedBuilder()
+    .setColor(color)
+    .setTitle(`Anonymous Confession ${messageId}`)
+    // @ts-ignore
+    .setDescription(`"${interaction.options.getString("message")}"`);
+  
+  const adminConfessionEmbed = new EmbedBuilder()
+    .setColor(color)
+    .setTitle(`Anonymous Confession ${messageId}`)
+    // @ts-ignore
+    .setDescription(`"${interaction.options.getString("message")}"`)
+    .addFields({
+        name: "Author",
+        value: interaction.user.displayName
+      },
+      {
+        name: "Author ID",
+        value: interaction.user.id
+      }
+    );
+
   const message = await (
     BotClient.channels.cache.get(confessChannel!) as TextChannel
   )
-    .send(
-      // @ts-ignore
-      `# Confession ${messageId}:\n${interaction.options.getString("message")}`,
-    );
+    .send({
+      embeds: [userConfessionEmbed]
+    });
 
   await (BotClient.channels.cache.get(adminChannel!) as TextChannel)
-    .send(
-      // @ts-ignore
-      `# Confession ${messageId}:\n### Author: ${interaction.user.displayName}\n### Author ID: ${interaction.user.id}\n${interaction.options.getString("message")}`,
-    );
+    .send({
+      embeds: [adminConfessionEmbed]
+    });
 
   dt.addConfession(message, messageId, interaction.user.displayName, interaction.user.id);
 
