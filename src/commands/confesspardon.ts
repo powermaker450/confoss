@@ -18,6 +18,9 @@
 
 import { CommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import { dt } from "../main";
+import Logger from "../utils/Logger";
+
+const logger = new Logger("(/) confesspardon");
 
 export const data = new SlashCommandBuilder()
   .setName("confesspardon")
@@ -37,13 +40,17 @@ export function execute(interaction: CommandInteraction) {
     interaction.options.getString("id")
   );
 
-  return result
-    ? interaction.reply({
-        content: "User was unbanned.",
-        ephemeral: true
-      })
-    : interaction.reply({
-        content: "No confession with that ID was found.",
-        ephemeral: true
-      });
+  try {
+    return result
+      ? interaction.reply({
+          content: "User was unbanned.",
+          ephemeral: true
+        })
+      : interaction.reply({
+          content: "No confession with that ID was found.",
+          ephemeral: true
+        });
+  } catch (err) {
+    logger.error("An error occured:", err);
+  }
 }

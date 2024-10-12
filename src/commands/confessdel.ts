@@ -20,6 +20,9 @@ import { CommandInteraction, EmbedBuilder, SlashCommandBuilder, TextChannel } fr
 import { dt } from "../main";
 import { BotClient } from "../bot";
 import getRandomColor from "../utils/getRandomColor";
+import Logger from "../utils/Logger";
+
+const logger = new Logger("(/) confessdel");
 
 export const data = new SlashCommandBuilder()
   .setName("confessdel")
@@ -45,26 +48,30 @@ export async function execute(interaction: CommandInteraction) {
   const result = dt.getConfession(interaction.guild?.id!, idVal);
 
   if (result) {
-    const confession = dt.getConfession(interaction.guild?.id!, idVal)?.messageId;
-    const channelId = dt.getGuildInfo(interaction.guild?.id!)?.settings.confessChannel!;
-    const emptyEmbed = new EmbedBuilder()
-      .setColor(getRandomColor())
-      .setTitle("Confession Deleted")
-      // @ts-ignore
-      .setDescription("[Confession Deleted]");
+    try {
+      const confession = dt.getConfession(interaction.guild?.id!, idVal)?.messageId;
+      const channelId = dt.getGuildInfo(interaction.guild?.id!)?.settings.confessChannel!;
+      const emptyEmbed = new EmbedBuilder()
+        .setColor(getRandomColor())
+        .setTitle("Confession Deleted")
+        // @ts-ignore
+        .setDescription("[Confession Deleted]");
 
-    await (BotClient.channels.cache.get(channelId) as TextChannel).messages.fetch(confession!).then(e => {
-      e.edit({
-        embeds: [emptyEmbed]
-      })
-    });
+      await (BotClient.channels.cache.get(channelId) as TextChannel).messages.fetch(confession!).then(e => {
+        e.edit({
+          embeds: [emptyEmbed]
+        })
+      });
 
-    dt.delConfesssion(interaction, idVal);
+      dt.delConfesssion(interaction, idVal);
 
-    return interaction.reply({
-      content: "Confession removed.",
-      ephemeral: true
-    })
+      return interaction.reply({
+        content: "Confession removed.",
+        ephemeral: true
+      });
+    } catch (err) {
+      logger.error("An error occured:", err);
+    }
   } else {
     return interaction.reply({
       content: "Either the confession wasn't found or you may not be allowed to remove it.",

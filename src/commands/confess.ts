@@ -26,6 +26,9 @@ import { BotClient } from "../bot";
 import { dt } from "../main";
 import { StoreMan } from "../storeman";
 import getRandomColor from "../utils/getRandomColor";
+import Logger from "../utils/Logger";
+
+const logger = new Logger("(/) confess");
 
 export const data = new SlashCommandBuilder()
   .setName("confess")
@@ -38,68 +41,72 @@ export const data = new SlashCommandBuilder()
   );
 
 export async function execute(interaction: CommandInteraction) {
-  if (dt.isBanned(interaction.guild?.id!, interaction.user.id)) {
-    return interaction.reply({
-      content: "You are banned from confessions in this server!",
-      ephemeral: true
-    });
-  }
+  try {
+    if (dt.isBanned(interaction.guild?.id!, interaction.user.id)) {
+      return interaction.reply({
+        content: "You are banned from confessions in this server!",
+        ephemeral: true
+      });
+    }
 
-  if (!dt.getGuildInfo(interaction.guild?.id!)) {
+    if (!dt.getGuildInfo(interaction.guild?.id!)) {
+      return interaction.reply({
+        content:
+          "The bot hasn't been set up yet! Ask the server admins to set it up.",
+        ephemeral: true,
+      });
+    }
+
+
+    const confessChannel = dt.getGuildInfo(interaction.guild?.id!)?.settings
+      .confessChannel;
+    const adminChannel = dt.getGuildInfo(interaction.guild?.id!)?.settings
+      .modChannel;
+    // @ts-ignore
+    const messageContent = interaction.options.getString("message");
+
+    const color = getRandomColor();
+    const messageId = StoreMan.genId();
+    const userConfessionEmbed = new EmbedBuilder()
+      .setColor(color)
+      .setTitle(`Anonymous Confession \`${messageId}\``)
+      // @ts-ignore
+      .setDescription(messageContent);
+    
+    const adminConfessionEmbed = new EmbedBuilder()
+      .setColor(color)
+      .setTitle(`Anonymous Confession \`${messageId}\``)
+      // @ts-ignore
+      .setDescription(messageContent)
+      .addFields({
+          name: "Author",
+          value: interaction.user.displayName
+        },
+        {
+          name: "Author ID",
+          value: interaction.user.id
+        }
+      );
+
+    const message = await (
+      BotClient.channels.cache.get(confessChannel!) as TextChannel
+    )
+      .send({
+        embeds: [userConfessionEmbed]
+      });
+
+    await (BotClient.channels.cache.get(adminChannel!) as TextChannel)
+      .send({
+        embeds: [adminConfessionEmbed]
+      });
+
+    dt.addConfession(message, messageId, interaction.user.displayName, interaction.user.id, messageContent);
+
     return interaction.reply({
-      content:
-        "The bot hasn't been set up yet! Ask the server admins to set it up.",
+      content: "Confession sent!",
       ephemeral: true,
     });
+  } catch (err) {
+    logger.error("An error occured:", err);
   }
-
-
-  const confessChannel = dt.getGuildInfo(interaction.guild?.id!)?.settings
-    .confessChannel;
-  const adminChannel = dt.getGuildInfo(interaction.guild?.id!)?.settings
-    .modChannel;
-  // @ts-ignore
-  const messageContent = interaction.options.getString("message");
-
-  const color = getRandomColor();
-  const messageId = StoreMan.genId();
-  const userConfessionEmbed = new EmbedBuilder()
-    .setColor(color)
-    .setTitle(`Anonymous Confession \`${messageId}\``)
-    // @ts-ignore
-    .setDescription(messageContent);
-  
-  const adminConfessionEmbed = new EmbedBuilder()
-    .setColor(color)
-    .setTitle(`Anonymous Confession \`${messageId}\``)
-    // @ts-ignore
-    .setDescription(messageContent)
-    .addFields({
-        name: "Author",
-        value: interaction.user.displayName
-      },
-      {
-        name: "Author ID",
-        value: interaction.user.id
-      }
-    );
-
-  const message = await (
-    BotClient.channels.cache.get(confessChannel!) as TextChannel
-  )
-    .send({
-      embeds: [userConfessionEmbed]
-    });
-
-  await (BotClient.channels.cache.get(adminChannel!) as TextChannel)
-    .send({
-      embeds: [adminConfessionEmbed]
-    });
-
-  dt.addConfession(message, messageId, interaction.user.displayName, interaction.user.id, messageContent);
-
-  return interaction.reply({
-    content: "Confession sent!",
-    ephemeral: true,
-  });
 }
