@@ -164,6 +164,7 @@ export class StoreMan {
               return confession.id !== confessionId;
             });
 
+            this.saveFile();
             return true;
           }
         }
