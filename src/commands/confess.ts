@@ -58,20 +58,22 @@ export async function execute(interaction: CommandInteraction) {
     .confessChannel;
   const adminChannel = dt.getGuildInfo(interaction.guild?.id!)?.settings
     .modChannel;
+  // @ts-ignore
+  const messageContent = interaction.options.getString("message");
 
   const color = getRandomColor();
   const messageId = StoreMan.genId();
   const userConfessionEmbed = new EmbedBuilder()
     .setColor(color)
-    .setTitle(`Anonymous Confession \`ID ${messageId}\``)
+    .setTitle(`Anonymous Confession \`${messageId}\``)
     // @ts-ignore
-    .setDescription(`"${interaction.options.getString("message")}"`);
+    .setDescription(messageContent);
   
   const adminConfessionEmbed = new EmbedBuilder()
     .setColor(color)
-    .setTitle(`Anonymous Confession \`ID ${messageId}\``)
+    .setTitle(`Anonymous Confession \`${messageId}\``)
     // @ts-ignore
-    .setDescription(`"${interaction.options.getString("message")}"`)
+    .setDescription(messageContent)
     .addFields({
         name: "Author",
         value: interaction.user.displayName
@@ -94,7 +96,7 @@ export async function execute(interaction: CommandInteraction) {
       embeds: [adminConfessionEmbed]
     });
 
-  dt.addConfession(message, messageId, interaction.user.displayName, interaction.user.id);
+  dt.addConfession(message, messageId, interaction.user.displayName, interaction.user.id, messageContent);
 
   return interaction.reply({
     content: "Confession sent!",
