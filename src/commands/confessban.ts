@@ -48,11 +48,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     });
   }
 
-
-  const result = dt.addBan(
-    guildId,
-    confessionId
-  );
+  const result = dt.addBan(guildId, confessionId);
 
   try {
     return result

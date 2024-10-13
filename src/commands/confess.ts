@@ -52,7 +52,7 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   // TODO: This all works as intended, but I'd like for it so be a reusable function
-  // instead because all of this is reused in src/main.ts:56
+  // instead because all of this is used in src/main.ts
   try {
     if (dt.isBanned(interaction.guild?.id!, interaction.user.id)) {
       return interaction.reply({
