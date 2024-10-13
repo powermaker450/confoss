@@ -65,14 +65,18 @@ BotClient.on(Events.InteractionCreate, async interaction => {
 });
 
 BotClient.on(Events.MessageDelete, async message => {
-  const guildId = message.guild?.id!;
-  const messageId = message.id;
-  const confessions = dt.getGuildInfo(guildId)?.confessions!;
+  try {
+    const guildId = message.guild?.id!;
+    const messageId = message.id;
+    const confessions = dt.getGuildInfo(guildId)?.confessions!;
 
-  for (const confession of confessions) {
-    if (confession.messageId === messageId) {
-      dt.adminDelConfession(guildId, confession.id);
+    for (const confession of confessions) {
+      if (confession.messageId === messageId) {
+        dt.adminDelConfession(guildId, confession.id);
+      }
     }
+  } catch (err) {
+    logger.error("An error occured:", err);
   }
 });
 
