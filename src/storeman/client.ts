@@ -18,7 +18,7 @@
 
 import fs from "fs";
 import crypto from "crypto";
-import { Confession, GuildData, GuildSettings } from "./types";
+import { Confession, ConfessionBan, GuildData, GuildSettings } from "./types";
 import { DATA_DIR } from "./config";
 import { CommandInteraction, Message } from "discord.js";
 
@@ -194,7 +194,7 @@ export class StoreMan {
     for (const guild of this.data) {
       if (guild.id === guildId) {
         for (const ban of guild.settings.bans) {
-          if (ban === userId) {
+          if (ban.user === userId) {
             return true;
           }
         }
@@ -204,7 +204,7 @@ export class StoreMan {
     return false;
   }
 
-  public getBans(guildId: string): string[] {
+  public getBans(guildId: string): ConfessionBan[] {
     for (const guild of this.data) {
       if (guild.id === guildId) {
         return guild.settings.bans;
@@ -223,7 +223,10 @@ export class StoreMan {
         if (confession) {
           // Only add the user to the ban list if they aren't banned already
           !this.isBanned(guildId, confession.authorId) &&
-            guild.settings.bans.push(confession.authorId!);
+            guild.settings.bans.push({
+              user: confession.authorId,
+              confessionId: confessionId
+            });
 
           this.saveFile();
           return true;
@@ -240,7 +243,7 @@ export class StoreMan {
       if (guild.id === guildId) {
         if (this.getConfession(guildId, confessionId)) {
           guild.settings.bans = guild.settings.bans.filter(ban => {
-            return ban !== this.getConfession(guildId, confessionId)?.authorId!;
+            return ban.user !== this.getConfession(guildId, confessionId)?.authorId!;
           });
 
           this.saveFile();

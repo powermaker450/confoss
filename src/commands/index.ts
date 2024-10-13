@@ -19,6 +19,7 @@
 import * as confess from "./confess";
 import * as confessdel from "./confessdel";
 import * as confessban from "./confessban";
+import * as confessbanlist from "./confessbanlist";
 import * as confesspardon from "./confesspardon";
 import * as ping from "./ping";
 import * as setup from "./setup";
@@ -27,6 +28,7 @@ export const commands = {
   confess,
   confessdel,
   confessban,
+  confessbanlist,
   confesspardon,
   ping,
   setup

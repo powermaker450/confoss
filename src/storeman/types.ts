@@ -24,10 +24,15 @@ export interface Confession {
   content: string;
 }
 
+export interface ConfessionBan {
+  user: string;
+  confessionId: string;
+}
+
 export interface GuildSettings {
   confessChannel: string;
   modChannel: string;
-  bans: string[];
+  bans: ConfessionBan[];
 }
 
 export interface GuildData {
