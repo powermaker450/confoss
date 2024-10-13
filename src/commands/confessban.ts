@@ -38,9 +38,20 @@ export const data = new SlashCommandBuilder()
   .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers);
 
 export async function execute(interaction: ChatInputCommandInteraction) {
+  const guildId = interaction.guild?.id!;
+  const confessionId = interaction.options.getString("id")!;
+
+  if (dt.isBanned(guildId, confessionId)) {
+    return interaction.reply({
+      content: "That user is already banned!",
+      ephemeral: true
+    });
+  }
+
+
   const result = dt.addBan(
-    interaction.guild?.id!,
-    interaction.options.getString("id")!
+    guildId,
+    confessionId
   );
 
   try {
