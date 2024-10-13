@@ -65,12 +65,13 @@ BotClient.on(Events.InteractionCreate, async interaction => {
 });
 
 BotClient.on(Events.MessageDelete, async message => {
-  const id = message.guild?.id!;
-  const confessions = dt.getGuildInfo(id)?.confessions!;
+  const guildId = message.guild?.id!;
+  const messageId = message.id;
+  const confessions = dt.getGuildInfo(guildId)?.confessions!;
 
   for (const confession of confessions) {
-    if (confession.messageId === id) {
-      dt.adminDelConfession(id, confession.id);
+    if (confession.messageId === messageId) {
+      dt.adminDelConfession(guildId, confession.id);
     }
   }
 });
