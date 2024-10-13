@@ -17,7 +17,11 @@
  */
 
 import {
+    ActionRowBuilder,
+    ButtonBuilder,
+  ButtonStyle,
   CommandInteraction,
+  ComponentType,
   EmbedBuilder,
   SlashCommandBuilder,
   TextChannel
@@ -27,6 +31,7 @@ import { dt } from "../main";
 import { StoreMan } from "../storeman";
 import getRandomColor from "../utils/getRandomColor";
 import Logger from "../utils/Logger";
+import { submit } from "../modals";
 
 const logger = new Logger("(/) confess");
 
@@ -41,6 +46,8 @@ export const data = new SlashCommandBuilder()
   );
 
 export async function execute(interaction: CommandInteraction) {
+  // TODO: This all works as intended, but I'd like for it so be a reusable function
+  // instead because all of this is reused in src/main.ts:56
   try {
     if (dt.isBanned(interaction.guild?.id!, interaction.user.id)) {
       return interaction.reply({
@@ -88,10 +95,27 @@ export async function execute(interaction: CommandInteraction) {
         }
       );
 
+    const submitConfessionButton = new ButtonBuilder()
+      .setCustomId("submitConfession")
+      .setLabel("Submit a Confession")
+      .setStyle(ButtonStyle.Primary);
+
+    const actionRow = new ActionRowBuilder<ButtonBuilder>()
+      .setComponents(submitConfessionButton);
+
     const message = await (
       BotClient.channels.cache.get(confessChannel!) as TextChannel
     ).send({
-      embeds: [userConfessionEmbed]
+      embeds: [userConfessionEmbed],
+      components: [actionRow]
+    });
+
+    const collector = message.createMessageComponentCollector({ componentType: ComponentType.Button });
+
+    collector.on("collect", i => {
+      if (i.customId === "submitConfession") {
+        i.showModal(submit);
+      }
     });
 
     await (BotClient.channels.cache.get(adminChannel!) as TextChannel).send({
@@ -105,6 +129,16 @@ export async function execute(interaction: CommandInteraction) {
       interaction.user.id,
       messageContent
     );
+
+    const confessionsLength = dt.getGuildInfo(interaction.guild?.id!)?.confessions.length!;
+
+    if (confessionsLength >= 2) {
+      await (BotClient.channels.cache.get(confessChannel!) as TextChannel).messages.fetch(
+        dt.getGuildInfo(interaction.guild?.id!)?.confessions[confessionsLength - 2].messageId!
+      ).then(message => {
+        message.edit({ components: [] });
+      });
+    }
 
     return interaction.reply({
       content: "Confession sent!",
