@@ -205,6 +205,8 @@ export class StoreMan {
         guild.confessions = guild.confessions.filter(confession => {
           return confession.id !== confessionId;
         });
+
+        this.saveFile();
       }
     }
   }
