@@ -20,7 +20,7 @@ import {
   CommandInteraction,
   EmbedBuilder,
   SlashCommandBuilder,
-  TextChannel,
+  TextChannel
 } from "discord.js";
 import { BotClient } from "../bot";
 import { dt } from "../main";
@@ -33,11 +33,11 @@ const logger = new Logger("(/) confess");
 export const data = new SlashCommandBuilder()
   .setName("confess")
   .setDescription("Send a confession")
-  .addStringOption((option) =>
+  .addStringOption(option =>
     option
       .setName("message")
       .setRequired(true)
-      .setDescription("What you want to confess"),
+      .setDescription("What you want to confess")
   );
 
 export async function execute(interaction: CommandInteraction) {
@@ -45,7 +45,7 @@ export async function execute(interaction: CommandInteraction) {
     if (dt.isBanned(interaction.guild?.id!, interaction.user.id)) {
       return interaction.reply({
         content: "You are banned from confessions in this server!",
-        ephemeral: true,
+        ephemeral: true
       });
     }
 
@@ -53,7 +53,7 @@ export async function execute(interaction: CommandInteraction) {
       return interaction.reply({
         content:
           "The bot hasn't been set up yet! Ask the server admins to set it up.",
-        ephemeral: true,
+        ephemeral: true
       });
     }
 
@@ -80,22 +80,22 @@ export async function execute(interaction: CommandInteraction) {
       .addFields(
         {
           name: "Author",
-          value: interaction.user.displayName,
+          value: interaction.user.displayName
         },
         {
           name: "Author ID",
-          value: interaction.user.id,
-        },
+          value: interaction.user.id
+        }
       );
 
     const message = await (
       BotClient.channels.cache.get(confessChannel!) as TextChannel
     ).send({
-      embeds: [userConfessionEmbed],
+      embeds: [userConfessionEmbed]
     });
 
     await (BotClient.channels.cache.get(adminChannel!) as TextChannel).send({
-      embeds: [adminConfessionEmbed],
+      embeds: [adminConfessionEmbed]
     });
 
     dt.addConfession(
@@ -103,12 +103,12 @@ export async function execute(interaction: CommandInteraction) {
       messageId,
       interaction.user.displayName,
       interaction.user.id,
-      messageContent,
+      messageContent
     );
 
     return interaction.reply({
       content: "Confession sent!",
-      ephemeral: true,
+      ephemeral: true
     });
   } catch (err) {
     logger.error("An error occured:", err);

@@ -29,5 +29,5 @@ export const commands = {
   confessban,
   confesspardon,
   ping,
-  setup,
+  setup
 };

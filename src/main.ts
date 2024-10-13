@@ -24,20 +24,20 @@ import Logger from "./utils/Logger";
 export const dt = new StoreMan(StoreMan.checkFile());
 const logger = new Logger("Main");
 
-BotClient.once("ready", (client) => {
+BotClient.once("ready", client => {
   logger.log(`We're ready! Logged in as ${client.user.tag}`);
 });
 
-BotClient.on("guildCreate", async (guild) => {
+BotClient.on("guildCreate", async guild => {
   await deployCommands({ guildId: guild.id });
 });
 
-BotClient.on("guildDelete", (guild) => {
+BotClient.on("guildDelete", guild => {
   logger.log(`${guild.name} didn't want us anymore... :(`);
   dt.clearSettings(guild.id);
 });
 
-BotClient.on("interactionCreate", async (interaction) => {
+BotClient.on("interactionCreate", async interaction => {
   if (!interaction.isCommand()) {
     return;
   }

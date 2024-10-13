@@ -38,14 +38,14 @@ export class StoreMan {
     id: string,
     author: string,
     authorId: string,
-    content: string,
+    content: string
   ): Confession {
     return {
       id: id,
       messageId: message.id,
       author: author,
       authorId: authorId,
-      content: content,
+      content: content
     };
   }
 
@@ -72,7 +72,7 @@ export class StoreMan {
     fs.writeFileSync(
       StoreMan.fullPath,
       JSON.stringify(this.data, null, 2),
-      "utf8",
+      "utf8"
     );
   }
 
@@ -92,7 +92,7 @@ export class StoreMan {
     this.data.push({
       id: id,
       confessions: [],
-      settings: opts,
+      settings: opts
     });
 
     this.saveFile();
@@ -100,7 +100,7 @@ export class StoreMan {
 
   // Clear the settings for a given guild
   public clearSettings(id: string): void {
-    this.data = this.data.filter((guild) => {
+    this.data = this.data.filter(guild => {
       return guild.id !== id;
     });
     this.saveFile();
@@ -122,7 +122,7 @@ export class StoreMan {
     id: string,
     author: string,
     authorId: string,
-    content: string,
+    content: string
   ): boolean {
     const guildId = message.guild?.id;
 
@@ -134,7 +134,7 @@ export class StoreMan {
         }
 
         guild.confessions.push(
-          StoreMan.toConfession(message, id, author, authorId, content),
+          StoreMan.toConfession(message, id, author, authorId, content)
         );
         this.saveFile();
         return true;
@@ -142,13 +142,13 @@ export class StoreMan {
     }
 
     throw new Error(
-      `No guild with id ${id} was found. Something's pretty wrong.`,
+      `No guild with id ${id} was found. Something's pretty wrong.`
     );
   }
 
   public getConfession(
     guildId: string,
-    confessionId: string,
+    confessionId: string
   ): Confession | null {
     for (const guild of this.data) {
       if (guild.id === guildId) {
@@ -166,7 +166,7 @@ export class StoreMan {
   // Attempts to delete a confession. If it is sucessfully deleted, returns true, else false.
   public delConfesssion(
     { guild, user }: CommandInteraction,
-    confessionId: string,
+    confessionId: string
   ): boolean {
     const guildId = guild?.id;
     const userId = user.id;
@@ -175,7 +175,7 @@ export class StoreMan {
       if (guild.id === guildId) {
         for (const confession of guild.confessions) {
           if (confession.authorId === userId) {
-            guild.confessions = guild.confessions.filter((confession) => {
+            guild.confessions = guild.confessions.filter(confession => {
               return confession.id !== confessionId;
             });
 
@@ -239,7 +239,7 @@ export class StoreMan {
     for (const guild of this.data) {
       if (guild.id === guildId) {
         if (this.getConfession(guildId, confessionId)) {
-          guild.settings.bans = guild.settings.bans.filter((ban) => {
+          guild.settings.bans = guild.settings.bans.filter(ban => {
             return ban !== this.getConfession(guildId, confessionId)?.authorId!;
           });
 

@@ -1,0 +1,13 @@
+# Prod
+**/dist
+**/node_modules
+**/persist
+
+# Files
+**/.env
+**/.prettierrc
+**/LICENSE
+**/package-lock.json
+**/package.json
+**/README.md
+**/tsconfig.json

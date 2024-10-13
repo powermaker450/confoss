@@ -19,5 +19,5 @@
 import { Client } from "discord.js";
 
 export const BotClient = new Client({
-  intents: ["Guilds", "GuildMessages", "DirectMessages"],
+  intents: ["Guilds", "GuildMessages", "DirectMessages"]
 });

@@ -24,8 +24,8 @@ import Logger from "../utils/Logger";
 
 const logger = new Logger("Deployer");
 
-const commandsData = Object.values(commands).map((command) =>
-  command.data.toJSON(),
+const commandsData = Object.values(commands).map(command =>
+  command.data.toJSON()
 );
 
 const rest = new REST({ version: "9" }).setToken(BOT_TOKEN);
@@ -35,7 +35,7 @@ export async function deployCommands({ guildId }: DeployCommandsProps) {
     logger.log("Started refreshing (/) commands.");
 
     await rest.put(Routes.applicationGuildCommands(BOT_ID, guildId), {
-      body: commandsData,
+      body: commandsData
     });
 
     logger.log("Successfully reloaded (/) commands.");

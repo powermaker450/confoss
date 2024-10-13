@@ -36,7 +36,7 @@ export default class Logger {
   public static readonly udln = chalk.underline;
 
   public static readonly anon = Logger.bold.gray(
-    `[ConfessBot] | ${Logger.emp("Anonymous ")}`,
+    `[ConfessBot] | ${Logger.emp("Anonymous ")}`
   );
 
   constructor(origin?: string) {

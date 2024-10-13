@@ -20,7 +20,7 @@ import {
   CommandInteraction,
   EmbedBuilder,
   SlashCommandBuilder,
-  TextChannel,
+  TextChannel
 } from "discord.js";
 import { dt } from "../main";
 import { BotClient } from "../bot";
@@ -32,8 +32,8 @@ const logger = new Logger("(/) confessdel");
 export const data = new SlashCommandBuilder()
   .setName("confessdel")
   .setDescription("Deletes a confession")
-  .addStringOption((option) =>
-    option.setName("id").setDescription("The confession id").setRequired(true),
+  .addStringOption(option =>
+    option.setName("id").setDescription("The confession id").setRequired(true)
   );
 
 export async function execute(interaction: CommandInteraction) {
@@ -41,7 +41,7 @@ export async function execute(interaction: CommandInteraction) {
     return interaction.reply({
       content:
         "The bot hasn't been set up yet! Ask the server admins to set it up.",
-      ephemeral: true,
+      ephemeral: true
     });
   }
 
@@ -53,7 +53,7 @@ export async function execute(interaction: CommandInteraction) {
     try {
       const confession = dt.getConfession(
         interaction.guild?.id!,
-        idVal,
+        idVal
       )?.messageId;
       const channelId = dt.getGuildInfo(interaction.guild?.id!)?.settings
         .confessChannel!;
@@ -65,9 +65,9 @@ export async function execute(interaction: CommandInteraction) {
 
       await (BotClient.channels.cache.get(channelId) as TextChannel).messages
         .fetch(confession!)
-        .then((e) => {
+        .then(e => {
           e.edit({
-            embeds: [emptyEmbed],
+            embeds: [emptyEmbed]
           });
         });
 
@@ -75,7 +75,7 @@ export async function execute(interaction: CommandInteraction) {
 
       return interaction.reply({
         content: "Confession removed.",
-        ephemeral: true,
+        ephemeral: true
       });
     } catch (err) {
       logger.error("An error occured:", err);
@@ -84,7 +84,7 @@ export async function execute(interaction: CommandInteraction) {
     return interaction.reply({
       content:
         "Either the confession wasn't found or you may not be allowed to remove it.",
-      ephemeral: true,
+      ephemeral: true
     });
   }
 }

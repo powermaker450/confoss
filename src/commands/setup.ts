@@ -23,7 +23,7 @@ import {
   CommandInteraction,
   ComponentType,
   PermissionFlagsBits,
-  SlashCommandBuilder,
+  SlashCommandBuilder
 } from "discord.js";
 import { dt } from "../main";
 import Logger from "../utils/Logger";
@@ -39,7 +39,7 @@ export async function execute(interaction: CommandInteraction) {
   if (dt.checkSetup(interaction.guild?.id!)) {
     return interaction.reply({
       content: "This guild has already been set up!",
-      ephemeral: true,
+      ephemeral: true
     });
   }
 
@@ -58,20 +58,20 @@ export async function execute(interaction: CommandInteraction) {
     const response = await interaction.reply({
       content: `# Let's get started, ${interaction.user.displayName}!\nFirst, let's choose a channel for your confessions.`,
       ephemeral: true,
-      components: [channelRow],
+      components: [channelRow]
     });
 
     const collector = response.createMessageComponentCollector({
       componentType: ComponentType.ChannelSelect,
-      time: 45_000,
+      time: 45_000
     });
 
-    collector.on("collect", async (i) => {
+    collector.on("collect", async i => {
       confessChannel = i.values[0];
 
       await i.update({
         content: "Awesome!",
-        components: [],
+        components: []
       });
 
       collector.stop();
@@ -83,55 +83,55 @@ export async function execute(interaction: CommandInteraction) {
 
       const logChannelRow =
         new ActionRowBuilder<ChannelSelectMenuBuilder>().addComponents(
-          logChannelList,
+          logChannelList
         );
 
       const logResponse = await interaction.followUp({
         content: "# Now, select a logging channel, for moderation purposes.",
         ephemeral: true,
-        components: [logChannelRow],
+        components: [logChannelRow]
       });
 
       const logCollector = logResponse.createMessageComponentCollector({
         componentType: ComponentType.ChannelSelect,
-        time: 45_000,
+        time: 45_000
       });
 
-      logCollector.on("collect", async (ij) => {
+      logCollector.on("collect", async ij => {
         logChannel = ij.values[0];
 
         await ij.update({
           content: "Setup Complete!",
-          components: [],
+          components: []
         });
 
         dt.setup(guildId!, {
           confessChannel: confessChannel,
           modChannel: logChannel,
-          bans: [],
+          bans: []
         });
 
         logCollector.stop();
       });
 
-      logCollector.on("end", (content) => {
+      logCollector.on("end", content => {
         // If there is no content, follow up with an error message.
         !content.size &&
           interaction.followUp({
             content: "No channel selected. Please try again.",
             ephemeral: true,
-            components: [],
+            components: []
           });
       });
     });
 
-    collector.on("end", (collected) => {
+    collector.on("end", collected => {
       // Same as above logCollector end
       !collected.size &&
         interaction.followUp({
           content: "No channel selected. Try again.",
           ephemeral: true,
-          components: [],
+          components: []
         });
     });
   } catch (err) {
