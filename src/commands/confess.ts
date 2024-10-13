@@ -99,7 +99,7 @@ export async function execute(interaction: CommandInteraction) {
       .addFields(
         {
           name: "Author",
-          value: interaction.user.displayName
+          value: `<@${interaction.user.id}>`
         },
         {
           name: "Author ID",

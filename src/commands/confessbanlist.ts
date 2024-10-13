@@ -22,7 +22,6 @@ import {
   SlashCommandBuilder
 } from "discord.js";
 import { dt } from "../main";
-import { BotClient } from "../bot";
 
 export const data = new SlashCommandBuilder()
   .setName("confessbanlist")
@@ -37,9 +36,7 @@ export async function execute(interaction: CommandInteraction) {
     : "There are no banned members.";
 
   for (const member of bannedMembers) {
-    const identifiedMember = await BotClient.users.fetch(member.user);
-
-    content += `\n${identifiedMember.displayName} | \`${member.confessionId}\``;
+    content += `\n<@${member.user} | \`${member.confessionId}\``;
   }
 
   return interaction.reply({

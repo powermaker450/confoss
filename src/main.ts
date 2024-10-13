@@ -23,8 +23,6 @@ import {
   ComponentType,
   EmbedBuilder,
   Events,
-  Interaction,
-  ModalSubmitInteraction,
   TextChannel
 } from "discord.js";
 import { BotClient, BOT_TOKEN, deployCommands } from "./bot";
@@ -133,7 +131,7 @@ BotClient.on(Events.InteractionCreate, async interaction => {
         .addFields(
           {
             name: "Author",
-            value: interaction.user.displayName
+            value: `<@${interaction.user.id}>`
           },
           {
             name: "Author ID",
