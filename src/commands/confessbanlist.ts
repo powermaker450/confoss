@@ -36,7 +36,7 @@ export async function execute(interaction: CommandInteraction) {
     : "There are no banned members.";
 
   for (const member of bannedMembers) {
-    content += `\n<@${member.user} | \`${member.confessionId}\``;
+    content += `\n<@${member.user}> | \`${member.confessionId}\``;
   }
 
   return interaction.reply({
