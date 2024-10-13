@@ -20,6 +20,7 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  ChatInputCommandInteraction,
   ComponentType,
   EmbedBuilder,
   Events,
@@ -58,7 +59,9 @@ BotClient.on(Events.InteractionCreate, async interaction => {
   const { commandName } = interaction;
 
   if (commands[commandName as keyof typeof commands]) {
-    commands[commandName as keyof typeof commands].execute(interaction);
+    commands[commandName as keyof typeof commands].execute(
+      interaction as ChatInputCommandInteraction
+    );
   }
 });
 

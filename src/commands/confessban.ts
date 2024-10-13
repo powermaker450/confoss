@@ -17,7 +17,7 @@
  */
 
 import {
-  CommandInteraction,
+  ChatInputCommandInteraction,
   PermissionFlagsBits,
   SlashCommandBuilder
 } from "discord.js";
@@ -37,11 +37,10 @@ export const data = new SlashCommandBuilder()
   )
   .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers);
 
-export async function execute(interaction: CommandInteraction) {
+export async function execute(interaction: ChatInputCommandInteraction) {
   const result = dt.addBan(
     interaction.guild?.id!,
-    // @ts-ignore
-    interaction.options.getString("id")
+    interaction.options.getString("id")!
   );
 
   try {

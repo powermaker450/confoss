@@ -17,6 +17,7 @@
  */
 
 import {
+  ChatInputCommandInteraction,
   CommandInteraction,
   EmbedBuilder,
   SlashCommandBuilder,
@@ -36,7 +37,7 @@ export const data = new SlashCommandBuilder()
     option.setName("id").setDescription("The confession id").setRequired(true)
   );
 
-export async function execute(interaction: CommandInteraction) {
+export async function execute(interaction: ChatInputCommandInteraction) {
   if (!dt.getGuildInfo(interaction.guild?.id!)) {
     return interaction.reply({
       content:
@@ -45,8 +46,7 @@ export async function execute(interaction: CommandInteraction) {
     });
   }
 
-  // @ts-ignore
-  const idVal = interaction.options.getString("id");
+  const idVal = interaction.options.getString("id")!;
   const result = dt.getConfession(interaction.guild?.id!, idVal);
 
   if (result) {

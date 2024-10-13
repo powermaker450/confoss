@@ -17,7 +17,7 @@
  */
 
 import {
-  CommandInteraction,
+  ChatInputCommandInteraction,
   PermissionFlagsBits,
   SlashCommandBuilder
 } from "discord.js";
@@ -37,11 +37,10 @@ export const data = new SlashCommandBuilder()
   )
   .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages);
 
-export function execute(interaction: CommandInteraction) {
+export function execute(interaction: ChatInputCommandInteraction) {
   const result = dt.removeBan(
     interaction.guild?.id!,
-    // @ts-ignore
-    interaction.options.getString("id")
+    interaction.options.getString("id")!
   );
 
   try {

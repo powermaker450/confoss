@@ -20,7 +20,7 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  CommandInteraction,
+  ChatInputCommandInteraction,
   ComponentType,
   EmbedBuilder,
   SlashCommandBuilder,
@@ -50,7 +50,7 @@ export const data = new SlashCommandBuilder()
       .setDescription("The link to an image to attach (optional)")
   );
 
-export async function execute(interaction: CommandInteraction) {
+export async function execute(interaction: ChatInputCommandInteraction) {
   // TODO: This all works as intended, but I'd like for it so be a reusable function
   // instead because all of this is reused in src/main.ts:56
   try {
@@ -73,12 +73,11 @@ export async function execute(interaction: CommandInteraction) {
       .confessChannel;
     const adminChannel = dt.getGuildInfo(interaction.guild?.id!)?.settings
       .modChannel;
-    // @ts-ignore
-    const messageContent: string = `"${interaction.options.getString("message")}"`;
-    // @ts-ignore
-    const attachment: string = interaction.options.getString("attachment");
 
-    const isAttachment = (text: string) =>
+    const messageContent = `"${interaction.options.getString("message")}"`;
+    const attachment = interaction.options.getString("attachment")!;
+
+    const isAttachment = (text: string | null) =>
       text && (text.startsWith("http://") || text.startsWith("https://"));
 
     const color = getRandomColor();
@@ -86,7 +85,6 @@ export async function execute(interaction: CommandInteraction) {
     const userConfessionEmbed = new EmbedBuilder()
       .setColor(color)
       .setTitle(`Anonymous Confession \`${messageId}\``)
-      // @ts-ignore
       .setDescription(messageContent);
 
     isAttachment(attachment) && userConfessionEmbed.setImage(attachment);
@@ -94,7 +92,6 @@ export async function execute(interaction: CommandInteraction) {
     const adminConfessionEmbed = new EmbedBuilder()
       .setColor(color)
       .setTitle(`Anonymous Confession \`${messageId}\``)
-      // @ts-ignore
       .setDescription(messageContent)
       .addFields(
         {
