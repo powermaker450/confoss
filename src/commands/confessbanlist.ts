@@ -35,6 +35,15 @@ export async function execute(interaction: CommandInteraction) {
     ? "Banned Members:\n"
     : "There are no banned members.";
 
+  // For each member, add them to the message content.
+  // It will end up looking something like this:
+  //
+  //  Banned Members:
+  //
+  //  @user1 | a1b2
+  //  @user2 | c3d4
+  //  @user3 | e5f6
+  //
   for (const member of bannedMembers) {
     content += `\n<@${member.user}> | \`${member.confessionId}\``;
   }

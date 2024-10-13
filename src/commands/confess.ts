@@ -54,6 +54,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   // TODO: This all works as intended, but I'd like for it so be a reusable function
   // instead because all of this is used in src/main.ts
   try {
+    // If the user is banned in this guild, don't let them post
     if (dt.isBanned(interaction.guild?.id!, interaction.user.id)) {
       return interaction.reply({
         content: "You are banned from confessions in this server!",
@@ -61,6 +62,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       });
     }
 
+    // If no guild info is present for this guild, don't let the user post
     if (!dt.getGuildInfo(interaction.guild?.id!)) {
       return interaction.reply({
         content:
@@ -82,6 +84,15 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
     const color = getRandomColor();
     const messageId = StoreMan.genId();
+
+    // Looks like:
+    //
+    //  |
+    //  | Anonymous Confession a1b2
+    //  |
+    //  | "example confession content"
+    //  |
+    //
     const userConfessionEmbed = new EmbedBuilder()
       .setColor(color)
       .setTitle(`Anonymous Confession \`${messageId}\``)
@@ -89,6 +100,20 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
     isAttachment(attachment) && userConfessionEmbed.setImage(attachment);
 
+    // Looks like:
+    //
+    //  |
+    //  | Anonymous Confession a1b2
+    //  | 
+    //  | "example confession content"
+    //  | 
+    //  | Author
+    //  | @user1
+    //  |
+    //  | Author ID
+    //  | 1234567890
+    //  |
+    //
     const adminConfessionEmbed = new EmbedBuilder()
       .setColor(color)
       .setTitle(`Anonymous Confession \`${messageId}\``)
@@ -148,6 +173,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     const confessionsLength = dt.getGuildInfo(interaction.guild?.id!)
       ?.confessions.length!;
 
+    // If there are 2 or more confessions, remove the previous confession's button components
     if (confessionsLength >= 2) {
       await (
         BotClient.channels.cache.get(confessChannel!) as TextChannel

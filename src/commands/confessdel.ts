@@ -18,7 +18,6 @@
 
 import {
   ChatInputCommandInteraction,
-  CommandInteraction,
   EmbedBuilder,
   SlashCommandBuilder,
   TextChannel
@@ -38,6 +37,8 @@ export const data = new SlashCommandBuilder()
   );
 
 export async function execute(interaction: ChatInputCommandInteraction) {
+
+  // If there is no guild info, don't let the user delete anything
   if (!dt.getGuildInfo(interaction.guild?.id!)) {
     return interaction.reply({
       content:
@@ -49,6 +50,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const idVal = interaction.options.getString("id")!;
   const result = dt.getConfession(interaction.guild?.id!, idVal);
 
+  // If a confession is found with the given ID, check if the user is the one that posted it, and delete it if they are.
+  // Otherwise, don't let the user delete anything.
   if (result) {
     try {
       const confession = dt.getConfession(
@@ -60,9 +63,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       const emptyEmbed = new EmbedBuilder()
         .setColor(getRandomColor())
         .setTitle("Confession Deleted")
-        // @ts-ignore
         .setDescription("[Confession Deleted]");
 
+      // Replace the given confession with an empty embed
       await (BotClient.channels.cache.get(channelId) as TextChannel).messages
         .fetch(confession!)
         .then(e => {
