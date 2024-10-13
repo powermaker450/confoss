@@ -64,6 +64,17 @@ BotClient.on(Events.InteractionCreate, async interaction => {
   }
 });
 
+BotClient.on(Events.MessageDelete, async message => {
+  const id = message.guild?.id!;
+  const confessions = dt.getGuildInfo(id)?.confessions!;
+
+  for (const confession of confessions) {
+    if (confession.messageId === id) {
+      dt.adminDelConfession(id, confession.id);
+    }
+  }
+});
+
 BotClient.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isModalSubmit()) {
     return;

@@ -199,6 +199,16 @@ export class StoreMan {
     return false;
   }
 
+  public adminDelConfession(guildId: string, confessionId: string): void {
+    for (const guild of this.data) {
+      if (guild.id === guildId) {
+        guild.confessions = guild.confessions.filter(confession => {
+          return confession.id !== confessionId;
+        });
+      }
+    }
+  }
+
   // Check if a certain user is banned within a guild.
   public isBanned(guildId: string, userId: string): boolean {
     for (const guild of this.data) {
