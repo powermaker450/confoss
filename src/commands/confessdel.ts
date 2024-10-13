@@ -71,8 +71,6 @@ export async function execute(interaction: CommandInteraction) {
           });
         });
 
-      dt.delConfesssion(interaction, idVal);
-
       return interaction.reply({
         content: "Confession removed.",
         ephemeral: true
