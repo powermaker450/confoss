@@ -16,19 +16,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { CommandInteraction,PermissionFlagsBits,SlashCommandBuilder } from "discord.js";
+import {
+  CommandInteraction,
+  PermissionFlagsBits,
+  SlashCommandBuilder
+} from "discord.js";
 import { dt } from "../main";
 import { BotClient } from "../bot";
 
 export const data = new SlashCommandBuilder()
   .setName("confessbanlist")
   .setDescription("Get the current ban list")
-  .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
+  .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages);
 
 export async function execute(interaction: CommandInteraction) {
   const bannedMembers = dt.getBans(interaction.guild?.id!);
 
-  let content = bannedMembers.length ? "Banned Members:\n" : "There are no banned members.";
+  let content = bannedMembers.length
+    ? "Banned Members:\n"
+    : "There are no banned members.";
 
   for (const member of bannedMembers) {
     const identifiedMember = await BotClient.users.fetch(member.user);
@@ -39,5 +45,5 @@ export async function execute(interaction: CommandInteraction) {
   return interaction.reply({
     content: content,
     ephemeral: true
-  })
+  });
 }

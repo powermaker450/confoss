@@ -16,7 +16,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, CacheType, ComponentType, EmbedBuilder, Events, Interaction, ModalSubmitInteraction, TextChannel, } from "discord.js";
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ComponentType,
+  EmbedBuilder,
+  Events,
+  Interaction,
+  ModalSubmitInteraction,
+  TextChannel
+} from "discord.js";
 import { BotClient, BOT_TOKEN, deployCommands } from "./bot";
 import { commands } from "./commands";
 import { StoreMan } from "./storeman";
@@ -60,9 +70,12 @@ BotClient.on(Events.InteractionCreate, async interaction => {
   }
 
   if (interaction.customId === "submitConfession") {
-    const messageContent: string = interaction.fields.getTextInputValue("confessionInput");
-    // const attachment: string = interaction.getTextInputValue("confessionAttachment"); 
-    
+    const messageContent: string =
+      interaction.fields.getTextInputValue("confessionInput");
+    const attachment: string = interaction.fields.getTextInputValue(
+      "confessionAttachment"
+    );
+
     try {
       if (dt.isBanned(interaction.guild?.id!, interaction.user.id)) {
         return interaction.reply({
@@ -84,6 +97,9 @@ BotClient.on(Events.InteractionCreate, async interaction => {
       const adminChannel = dt.getGuildInfo(interaction.guild?.id!)?.settings
         .modChannel;
 
+      const isAttachment = (text: string) =>
+        text && (text.startsWith("http://") || text.startsWith("https://"));
+
       const color = getRandomColor();
       const messageId = StoreMan.genId();
       const userConfessionEmbed = new EmbedBuilder()
@@ -91,6 +107,8 @@ BotClient.on(Events.InteractionCreate, async interaction => {
         .setTitle(`Anonymous Confession \`${messageId}\``)
         // @ts-ignore
         .setDescription(messageContent);
+
+      isAttachment(attachment) && userConfessionEmbed.setImage(attachment);
 
       const adminConfessionEmbed = new EmbedBuilder()
         .setColor(color)
@@ -108,13 +126,16 @@ BotClient.on(Events.InteractionCreate, async interaction => {
           }
         );
 
+      isAttachment(attachment) && adminConfessionEmbed.setImage(attachment);
+
       const submitConfessionButton = new ButtonBuilder()
         .setCustomId("submitConfession")
         .setLabel("Submit a Confession")
         .setStyle(ButtonStyle.Primary);
 
-      const actionRow = new ActionRowBuilder<ButtonBuilder>()
-        .setComponents(submitConfessionButton);
+      const actionRow = new ActionRowBuilder<ButtonBuilder>().setComponents(
+        submitConfessionButton
+      );
 
       const message = await (
         BotClient.channels.cache.get(confessChannel!) as TextChannel
@@ -123,7 +144,9 @@ BotClient.on(Events.InteractionCreate, async interaction => {
         components: [actionRow]
       });
 
-      const collector = message.createMessageComponentCollector({ componentType: ComponentType.Button });
+      const collector = message.createMessageComponentCollector({
+        componentType: ComponentType.Button
+      });
 
       collector.on("collect", i => {
         if (i.customId === "submitConfession") {
@@ -140,17 +163,25 @@ BotClient.on(Events.InteractionCreate, async interaction => {
         messageId,
         interaction.user.displayName,
         interaction.user.id,
-        messageContent
+        messageContent,
+        attachment
       );
 
-      const confessionsLength = dt.getGuildInfo(interaction.guild?.id!)?.confessions.length!;
+      const confessionsLength = dt.getGuildInfo(interaction.guild?.id!)
+        ?.confessions.length!;
 
       if (confessionsLength >= 2) {
-        await (BotClient.channels.cache.get(confessChannel!) as TextChannel).messages.fetch(
-          dt.getGuildInfo(interaction.guild?.id!)?.confessions[confessionsLength - 2].messageId!
-        ).then(message => {
-          message.edit({ components: [] });
-        });
+        await (
+          BotClient.channels.cache.get(confessChannel!) as TextChannel
+        ).messages
+          .fetch(
+            dt.getGuildInfo(interaction.guild?.id!)?.confessions[
+              confessionsLength - 2
+            ].messageId!
+          )
+          .then(message => {
+            message.edit({ components: [] });
+          });
       }
 
       return interaction.reply({
@@ -161,6 +192,6 @@ BotClient.on(Events.InteractionCreate, async interaction => {
       logger.error("An error occured:", err);
     }
   }
-})
+});
 
 BotClient.login(BOT_TOKEN);

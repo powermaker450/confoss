@@ -17,8 +17,8 @@
  */
 
 import {
-    ActionRowBuilder,
-    ButtonBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
   ButtonStyle,
   CommandInteraction,
   ComponentType,
@@ -43,6 +43,11 @@ export const data = new SlashCommandBuilder()
       .setName("message")
       .setRequired(true)
       .setDescription("What you want to confess")
+  )
+  .addStringOption(option =>
+    option
+      .setName("attachment")
+      .setDescription("The link to an image to attach (optional)")
   );
 
 export async function execute(interaction: CommandInteraction) {
@@ -69,7 +74,12 @@ export async function execute(interaction: CommandInteraction) {
     const adminChannel = dt.getGuildInfo(interaction.guild?.id!)?.settings
       .modChannel;
     // @ts-ignore
-    const messageContent = interaction.options.getString("message");
+    const messageContent: string = interaction.options.getString("message");
+    // @ts-ignore
+    const attachment: string = interaction.options.getString("attachment");
+
+    const isAttachment = (text: string) =>
+      text && (text.startsWith("http://") || text.startsWith("https://"));
 
     const color = getRandomColor();
     const messageId = StoreMan.genId();
@@ -78,6 +88,8 @@ export async function execute(interaction: CommandInteraction) {
       .setTitle(`Anonymous Confession \`${messageId}\``)
       // @ts-ignore
       .setDescription(messageContent);
+
+    isAttachment(attachment) && userConfessionEmbed.setImage(attachment);
 
     const adminConfessionEmbed = new EmbedBuilder()
       .setColor(color)
@@ -95,13 +107,16 @@ export async function execute(interaction: CommandInteraction) {
         }
       );
 
+    isAttachment(attachment) && adminConfessionEmbed.setImage(attachment);
+
     const submitConfessionButton = new ButtonBuilder()
       .setCustomId("submitConfession")
       .setLabel("Submit a Confession")
       .setStyle(ButtonStyle.Primary);
 
-    const actionRow = new ActionRowBuilder<ButtonBuilder>()
-      .setComponents(submitConfessionButton);
+    const actionRow = new ActionRowBuilder<ButtonBuilder>().setComponents(
+      submitConfessionButton
+    );
 
     const message = await (
       BotClient.channels.cache.get(confessChannel!) as TextChannel
@@ -110,7 +125,9 @@ export async function execute(interaction: CommandInteraction) {
       components: [actionRow]
     });
 
-    const collector = message.createMessageComponentCollector({ componentType: ComponentType.Button });
+    const collector = message.createMessageComponentCollector({
+      componentType: ComponentType.Button
+    });
 
     collector.on("collect", i => {
       if (i.customId === "submitConfession") {
@@ -127,17 +144,25 @@ export async function execute(interaction: CommandInteraction) {
       messageId,
       interaction.user.displayName,
       interaction.user.id,
-      messageContent
+      messageContent,
+      attachment
     );
 
-    const confessionsLength = dt.getGuildInfo(interaction.guild?.id!)?.confessions.length!;
+    const confessionsLength = dt.getGuildInfo(interaction.guild?.id!)
+      ?.confessions.length!;
 
     if (confessionsLength >= 2) {
-      await (BotClient.channels.cache.get(confessChannel!) as TextChannel).messages.fetch(
-        dt.getGuildInfo(interaction.guild?.id!)?.confessions[confessionsLength - 2].messageId!
-      ).then(message => {
-        message.edit({ components: [] });
-      });
+      await (
+        BotClient.channels.cache.get(confessChannel!) as TextChannel
+      ).messages
+        .fetch(
+          dt.getGuildInfo(interaction.guild?.id!)?.confessions[
+            confessionsLength - 2
+          ].messageId!
+        )
+        .then(message => {
+          message.edit({ components: [] });
+        });
     }
 
     return interaction.reply({

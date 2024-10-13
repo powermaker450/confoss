@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { 
+import {
   ActionRowBuilder,
   ModalActionRowComponentBuilder,
   ModalBuilder,
@@ -26,27 +26,31 @@ import {
 
 const submit = new ModalBuilder()
   .setCustomId("submitConfession")
-  .setTitle("Submit Confession")
+  .setTitle("Submit Confession");
 
 const confessionInput = new TextInputBuilder()
   .setCustomId("confessionInput")
   .setLabel("Confession")
   .setRequired(true)
   .setMaxLength(2000)
-  .setStyle(TextInputStyle.Paragraph)
+  .setStyle(TextInputStyle.Paragraph);
 
-// TODO: Add support for attachments
-//
-// const attachmentInput = new TextInputBuilder()
-//   .setCustomId("confessionAttachment")
-//   .setLabel("Attachment (optional)")
-//   .setRequired(false)
-//   .setStyle(TextInputStyle.Short)
+const attachmentInput = new TextInputBuilder()
+  .setCustomId("confessionAttachment")
+  .setLabel("Attachment (optional)")
+  .setRequired(false)
+  .setStyle(TextInputStyle.Short);
 
-const actionRow = new ActionRowBuilder<ModalActionRowComponentBuilder>()
-  .addComponents(confessionInput);
-  // .addComponents(confessionInput, attachmentInput);
+const confessionRow =
+  new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(
+    confessionInput
+  );
 
-submit.addComponents(actionRow);
+const attachmentRow =
+  new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(
+    attachmentInput
+  );
+
+submit.addComponents(confessionRow, attachmentRow);
 
 export { submit };

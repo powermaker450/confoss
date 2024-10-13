@@ -38,14 +38,16 @@ export class StoreMan {
     id: string,
     author: string,
     authorId: string,
-    content: string
+    content: string,
+    attachment?: string
   ): Confession {
     return {
       id: id,
       messageId: message.id,
       author: author,
       authorId: authorId,
-      content: content
+      content: content,
+      attachment: attachment
     };
   }
 
@@ -122,7 +124,8 @@ export class StoreMan {
     id: string,
     author: string,
     authorId: string,
-    content: string
+    content: string,
+    attachment?: string
   ): boolean {
     const guildId = message.guild?.id;
 
@@ -134,7 +137,14 @@ export class StoreMan {
         }
 
         guild.confessions.push(
-          StoreMan.toConfession(message, id, author, authorId, content)
+          StoreMan.toConfession(
+            message,
+            id,
+            author,
+            authorId,
+            content,
+            attachment
+          )
         );
         this.saveFile();
         return true;
@@ -243,7 +253,9 @@ export class StoreMan {
       if (guild.id === guildId) {
         if (this.getConfession(guildId, confessionId)) {
           guild.settings.bans = guild.settings.bans.filter(ban => {
-            return ban.user !== this.getConfession(guildId, confessionId)?.authorId!;
+            return (
+              ban.user !== this.getConfession(guildId, confessionId)?.authorId!
+            );
           });
 
           this.saveFile();

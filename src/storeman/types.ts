@@ -22,6 +22,7 @@ export interface Confession {
   author: string;
   authorId: string;
   content: string;
+  attachment?: string;
 }
 
 export interface ConfessionBan {
