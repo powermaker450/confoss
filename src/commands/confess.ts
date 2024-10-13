@@ -74,7 +74,7 @@ export async function execute(interaction: CommandInteraction) {
     const adminChannel = dt.getGuildInfo(interaction.guild?.id!)?.settings
       .modChannel;
     // @ts-ignore
-    const messageContent: string = interaction.options.getString("message");
+    const messageContent: string = `"${interaction.options.getString("message")}"`;
     // @ts-ignore
     const attachment: string = interaction.options.getString("attachment");
 

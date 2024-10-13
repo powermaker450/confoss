@@ -86,8 +86,7 @@ BotClient.on(Events.InteractionCreate, async interaction => {
   }
 
   if (interaction.customId === "submitConfession") {
-    const messageContent: string =
-      interaction.fields.getTextInputValue("confessionInput");
+    const messageContent: string = `"${interaction.fields.getTextInputValue("confessionInput")}"`;
     const attachment: string = interaction.fields.getTextInputValue(
       "confessionAttachment"
     );
