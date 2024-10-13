@@ -21,6 +21,7 @@ import { commands } from "../commands";
 import { BOT_ID, BOT_TOKEN } from "./config";
 import { DeployCommandsProps } from "./types";
 import Logger from "../utils/Logger";
+import { BotClient } from "./client";
 
 const logger = new Logger("Deployer");
 
@@ -32,13 +33,15 @@ const rest = new REST({ version: "9" }).setToken(BOT_TOKEN);
 
 export async function deployCommands({ guildId }: DeployCommandsProps) {
   try {
-    logger.log("Started refreshing (/) commands.");
+    const guildName = BotClient.guilds.cache.get(guildId)?.name;
+
+    logger.log(`Started refreshing (/) commands for ${guildName}`);
 
     await rest.put(Routes.applicationGuildCommands(BOT_ID, guildId), {
       body: commandsData
     });
 
-    logger.log("Successfully reloaded (/) commands.");
+    logger.log(`Successfully reloaded (/) commands for ${guildName}`);
   } catch (err) {
     logger.error(err);
   }
