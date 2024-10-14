@@ -104,9 +104,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     //
     //  |
     //  | Anonymous Confession a1b2
-    //  | 
+    //  |
     //  | "example confession content"
-    //  | 
+    //  |
     //  | Author
     //  | @user1
     //  |

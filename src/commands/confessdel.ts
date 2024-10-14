@@ -37,7 +37,6 @@ export const data = new SlashCommandBuilder()
   );
 
 export async function execute(interaction: ChatInputCommandInteraction) {
-
   // If there is no guild info, don't let the user delete anything
   if (!dt.getGuildInfo(interaction.guild?.id!)) {
     return interaction.reply({
