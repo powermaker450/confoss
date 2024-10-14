@@ -153,7 +153,13 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
     collector.on("collect", i => {
       if (i.customId === "submitConfession") {
-        i.showModal(submit);
+        // Check if the user is banned from confessions first before displaying the modal
+        dt.isBanned(i.guild.id, i.user.id)
+          ? i.reply({
+              content: "You are banned from confessions in this server!",
+              ephemeral: true
+            })
+          : i.showModal(submit);
       }
     });
 
