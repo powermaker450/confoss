@@ -32,7 +32,6 @@ import { StoreMan } from "../storeman";
 import getRandomColor from "../utils/getRandomColor";
 import Logger from "../utils/Logger";
 import { submit } from "../modals";
-import removeConfession from "../utils/removeConfession";
 
 const logger = new Logger("(/) confess");
 
@@ -118,6 +117,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     const adminConfessionEmbed = new EmbedBuilder()
       .setColor(color)
       .setTitle(`Anonymous Confession \`${messageId}\``)
+      .setTimestamp(Date.now())
       .setDescription(messageContent)
       .addFields(
         {
