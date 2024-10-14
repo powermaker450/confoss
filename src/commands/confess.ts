@@ -32,6 +32,7 @@ import { StoreMan } from "../storeman";
 import getRandomColor from "../utils/getRandomColor";
 import Logger from "../utils/Logger";
 import { submit } from "../modals";
+import removeConfession from "../utils/removeConfession";
 
 const logger = new Logger("(/) confess");
 
@@ -136,8 +137,14 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       .setLabel("Submit a Confession")
       .setStyle(ButtonStyle.Primary);
 
+    // const deleteConfessionButton = new ButtonBuilder()
+    //   .setCustomId("deleteConfession")
+    //   .setLabel("Delete")
+    //   .setStyle(ButtonStyle.Danger);
+
     const actionRow = new ActionRowBuilder<ButtonBuilder>().setComponents(
       submitConfessionButton
+      // deleteConfessionButton
     );
 
     const message = await (

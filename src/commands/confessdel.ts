@@ -19,6 +19,7 @@
 import {
   ChatInputCommandInteraction,
   EmbedBuilder,
+  PermissionFlagsBits,
   SlashCommandBuilder,
   TextChannel
 } from "discord.js";
@@ -48,22 +49,31 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   const idVal = interaction.options.getString("id")!;
   const result = dt.getConfession(interaction.guild?.id!, idVal);
+  // If there is a result, and the user is either an author or has manage messages
+  const allowedByUser = result && result.authorId === interaction.user.id;
+  const allowedByMod =
+    result &&
+    interaction.memberPermissions?.has(PermissionFlagsBits.ManageMessages);
 
   // If a confession is found with the given ID, check if the user is the one that posted it, and delete it if they are.
   // Otherwise, don't let the user delete anything.
-  if (result) {
-    try {
-      const confession = dt.getConfession(
-        interaction.guild?.id!,
-        idVal
-      )?.messageId;
-      const channelId = dt.getGuildInfo(interaction.guild?.id!)?.settings
-        .confessChannel!;
-      const emptyEmbed = new EmbedBuilder()
-        .setColor(getRandomColor())
-        .setTitle("Confession Deleted")
-        .setDescription("[Confession Deleted]");
+  if (allowedByUser || allowedByMod) {
+    const confession = dt.getConfession(
+      interaction.guild?.id!,
+      idVal
+    )?.messageId;
+    const channelId = dt.getGuildInfo(interaction.guild?.id!)?.settings
+      .confessChannel!;
+    const emptyEmbed = new EmbedBuilder()
+      .setColor(getRandomColor())
+      .setTitle("Confession Deleted")
+      .setDescription(
+        allowedByUser
+          ? "[Confession removed by user]"
+          : "[Confession removed by moderator]"
+      );
 
+    try {
       // Replace the given confession with an empty embed
       await (BotClient.channels.cache.get(channelId) as TextChannel).messages
         .fetch(confession!)
@@ -78,13 +88,31 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         ephemeral: true
       });
     } catch (err) {
-      logger.error("An error occured:", err);
+      logger.error("A confession delete error occured:", err);
+      return interaction.reply({
+        content: "An error occured.",
+        ephemeral: true
+      });
     }
   } else {
-    return interaction.reply({
-      content:
-        "Either the confession wasn't found or you may not be allowed to remove it.",
-      ephemeral: true
-    });
+    try {
+      // If there was a result, the user wasn't allowed to remove it, otherwise it didn't exist.
+      return result
+        ? interaction.reply({
+            content: "You are not allowed to remove this confession.",
+            ephemeral: true
+          })
+        : interaction.reply({
+            content:
+              "Either the confession wasn't found or you may not be allowed to remove it.",
+            ephemeral: true
+          });
+    } catch (err) {
+      logger.error("A confession delete interaction occured:", err);
+      return interaction.reply({
+        content: "An error occured.",
+        ephemeral: true
+      });
+    }
   }
 }
