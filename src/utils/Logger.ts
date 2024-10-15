@@ -20,12 +20,10 @@ import chalk from "chalk";
 import { LOG_LEVEL } from "./config";
 
 export default class Logger {
-  private _wrn: string;
-  private _err: string;
   private _main: string;
-  private _loglevel = +LOG_LEVEL;
+  public readonly _loglevel = +LOG_LEVEL;
+  public readonly name: string;
   private readonly isMain: boolean;
-  public name: string;
 
   public static readonly emp = chalk.green;
   public static readonly wrn = chalk.yellow;
@@ -35,56 +33,61 @@ export default class Logger {
   public static readonly itl = chalk.italic;
   public static readonly udln = chalk.underline;
 
+  private static readonly _wrn = Logger.wrn("[WARN] ");
+  private static readonly _err = Logger.err("[ERROR] ");
+
   public static readonly anon = Logger.bold.gray(
-    `[ConfessBot] | ${Logger.emp("Anonymous ")}`
+    `[ConfessBot | ${Logger.emp("Anonymous ")}] `
   );
 
   constructor(origin?: string) {
-    this._wrn = Logger.wrn("[WARN] ");
-    this._err = Logger.err("[ERROR] ");
     this.name = origin ?? "Anonymous";
     this.isMain = this.name === "Main";
 
     this._main = Logger.bold.gray(`[ConfessBot | ${Logger.emp(this.name)}] `);
   }
 
-  public log(text?: any, ...args: any[]) {
+  private static argDet(args: any[]): any | any[] {
+    return args.length === 1 ? args : args[0];
+  }
+
+  public log(text?: any, ...args: any[]): void {
     if (this.isMain || this._loglevel > 2) {
       args.length
-        ? console.log(this._main + text, args)
+        ? console.log(this._main + text, Logger.argDet(args))
         : console.log(this._main + text);
     }
   }
 
-  public static log(text?: any, ...args: any[]) {
+  public static log(text?: any, ...args: any[]): void {
     args.length
-      ? console.log(Logger.anon + text, args)
+      ? console.log(Logger.anon + text, Logger.argDet(args))
       : console.log(Logger.anon + text);
   }
 
-  public warn(text?: any, ...args: any[]) {
+  public warn(text?: any, ...args: any[]): void {
     if (this._loglevel > 1) {
       args.length
-        ? console.warn(this._main + text, args)
-        : console.warn(this._main + text);
+        ? console.warn(Logger._wrn + this._main + text, Logger.argDet(args))
+        : console.warn(Logger._wrn + this._main + text);
     }
   }
 
-  public static warn(text?: any, ...args: any[]) {
+  public static warn(text?: any, ...args: any[]): void {
     args.length
-      ? console.warn(Logger.anon + text, args)
-      : console.warn(Logger.anon + text);
+      ? console.warn(Logger._wrn + Logger.anon + text, Logger.argDet(args))
+      : console.warn(Logger._wrn + Logger.anon + text);
   }
 
-  public error(text?: any, ...args: any[]) {
+  public error(text?: any, ...args: any[]): void {
     args.length
-      ? console.error(this._main + text, args)
-      : console.error(this._main + text);
+      ? console.error(Logger._err + this._main + text, Logger.argDet(args))
+      : console.error(Logger._err + this._main + text);
   }
 
-  public static error(text?: any, ...args: any[]) {
+  public static error(text?: any, ...args: any[]): void {
     args.length
-      ? console.error(Logger.anon + text, args)
-      : console.error(Logger.anon + text);
+      ? console.error(Logger._err + Logger.anon + text, Logger.argDet(args))
+      : console.error(Logger._err + Logger.anon + text);
   }
 }
