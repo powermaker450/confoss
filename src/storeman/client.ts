@@ -21,10 +21,12 @@ import crypto from "crypto";
 import { Confession, ConfessionBan, GuildData, GuildSettings } from "./types";
 import { DATA_DIR } from "./config";
 import { CommandInteraction, Message } from "discord.js";
+import Logger from "../utils/Logger";
 
 export class StoreMan {
   public static readonly fullPath: string =
     (DATA_DIR ?? "./persist/") + "data.json";
+  private static logger = new Logger("StoreMan");
   private data: GuildData[];
 
   constructor(existingData: GuildData[] = []) {
@@ -70,11 +72,12 @@ export class StoreMan {
     return final;
   }
 
-  private saveFile(): void {
-    fs.writeFileSync(
+  public async saveFile(): Promise<void> {
+    fs.writeFile(
       StoreMan.fullPath,
       JSON.stringify(this.data, null, 2),
-      "utf8"
+      "utf8",
+      err => err && StoreMan.logger.error("A write error occured:", err)
     );
   }
 
