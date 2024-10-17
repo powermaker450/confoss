@@ -21,7 +21,6 @@ import {
   ButtonBuilder,
   ButtonStyle,
   ChatInputCommandInteraction,
-  ComponentType,
   EmbedBuilder,
   Events,
   TextChannel
@@ -180,7 +179,7 @@ BotClient.on(Events.InteractionCreate, async interaction => {
         components: [actionRow]
       });
 
-      await (BotClient.channels.cache.get(adminChannel!) as TextChannel).send({
+      adminChannel && await (BotClient.channels.cache.get(adminChannel!) as TextChannel).send({
         embeds: [adminConfessionEmbed]
       });
 

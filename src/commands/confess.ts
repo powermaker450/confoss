@@ -153,7 +153,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       components: [actionRow]
     });
 
-    await (BotClient.channels.cache.get(adminChannel!) as TextChannel).send({
+    adminChannel && await (BotClient.channels.cache.get(adminChannel!) as TextChannel).send({
       embeds: [adminConfessionEmbed]
     });
 

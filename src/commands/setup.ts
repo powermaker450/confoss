@@ -18,6 +18,8 @@
 
 import {
   ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
   ChannelSelectMenuBuilder,
   ChannelType,
   CommandInteraction,
@@ -51,8 +53,16 @@ export async function execute(interaction: CommandInteraction) {
     .setCustomId("channels")
     .setPlaceholder("Choose a channel");
 
+  const skipButton = new ButtonBuilder()
+    .setCustomId("skipModChannel")
+    .setLabel("Skip")
+    .setStyle(ButtonStyle.Secondary)
+
   const channelRow =
     new ActionRowBuilder<ChannelSelectMenuBuilder>().addComponents(channelList);
+
+  const buttonRow = new ActionRowBuilder<ButtonBuilder>()
+    .addComponents(skipButton);
 
   try {
     const response = await interaction.reply({
@@ -67,7 +77,7 @@ export async function execute(interaction: CommandInteraction) {
     });
 
     collector.on("collect", async i => {
-      confessChannel = i.values[0];
+      [ confessChannel ] = i.values;
 
       await i.update({
         content: "Awesome!",
@@ -89,7 +99,7 @@ export async function execute(interaction: CommandInteraction) {
       const logResponse = await interaction.followUp({
         content: "# Now, select a logging channel, for moderation purposes.",
         ephemeral: true,
-        components: [logChannelRow]
+        components: [logChannelRow, buttonRow]
       });
 
       const logCollector = logResponse.createMessageComponentCollector({
@@ -97,8 +107,15 @@ export async function execute(interaction: CommandInteraction) {
         time: 45_000
       });
 
+      const skipCollector = logResponse.createMessageComponentCollector({
+        componentType: ComponentType.Button,
+        time: 45_000
+      });
+      
+      let skipped = false;
+
       logCollector.on("collect", async ij => {
-        logChannel = ij.values[0];
+        [ logChannel ] = ij.values;
 
         await ij.update({
           content: "Setup Complete!",
@@ -112,11 +129,30 @@ export async function execute(interaction: CommandInteraction) {
         });
 
         logCollector.stop();
+        skipCollector.stop();
       });
 
+      skipCollector.on("collect", async ik => {
+        if (ik.customId === "skipModChannel") {
+          await ik.update({
+            content: "Setup complete!",
+            components: []
+          });
+          
+          dt.setup(guildId!, {
+            confessChannel: confessChannel,
+            bans: []
+          });
+
+          skipped = true;
+          logCollector.stop();
+          skipCollector.stop();
+        }
+      })
+
       logCollector.on("end", content => {
-        // If there is no content, follow up with an error message.
-        !content.size &&
+        // If there is no content and the channel hasn't been skipped, follow up with an error message.
+        (!content.size && !skipped) &&
           interaction.followUp({
             content: "No channel selected. Please try again.",
             ephemeral: true,

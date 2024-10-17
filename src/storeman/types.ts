@@ -32,7 +32,7 @@ export interface ConfessionBan {
 
 export interface GuildSettings {
   confessChannel: string;
-  modChannel: string;
+  modChannel?: string;
   bans: ConfessionBan[];
 }
 
