@@ -21,7 +21,6 @@ import {
   ButtonBuilder,
   ButtonStyle,
   ChatInputCommandInteraction,
-  ComponentType,
   EmbedBuilder,
   SlashCommandBuilder,
   TextChannel
@@ -31,7 +30,6 @@ import { dt } from "../main";
 import { StoreMan } from "../storeman";
 import getRandomColor from "../utils/getRandomColor";
 import Logger from "../utils/Logger";
-import { submit } from "../modals";
 
 const logger = new Logger("(/) confess");
 
@@ -133,7 +131,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     isAttachment(attachment) && adminConfessionEmbed.setImage(attachment);
 
     const submitConfessionButton = new ButtonBuilder()
-      .setCustomId("submitConfession")
+      .setCustomId("requestSubmit")
       .setLabel("Submit a Confession")
       .setStyle(ButtonStyle.Primary);
 
@@ -152,22 +150,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     ).send({
       embeds: [userConfessionEmbed],
       components: [actionRow]
-    });
-
-    const collector = message.createMessageComponentCollector({
-      componentType: ComponentType.Button
-    });
-
-    collector.on("collect", i => {
-      if (i.customId === "submitConfession") {
-        // Check if the user is banned from confessions first before displaying the modal
-        dt.isBanned(i.guild.id, i.user.id)
-          ? i.reply({
-              content: "You are banned from confessions in this server!",
-              ephemeral: true
-            })
-          : i.showModal(submit);
-      }
     });
 
     await (BotClient.channels.cache.get(adminChannel!) as TextChannel).send({

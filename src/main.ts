@@ -81,6 +81,28 @@ BotClient.on(Events.MessageDelete, async message => {
   }
 });
 
+// Submit Confession button
+BotClient.on(Events.InteractionCreate, async interaction => {
+  if (!interaction.isButton()) {
+    return;
+  }
+
+  // Changed the id of the submit request button, but keep compatibility for now
+  const requestSubmit =
+    interaction.customId === "requestSubmit" ||
+    interaction.customId === "submitConfession";
+
+  if (requestSubmit) {
+    // Check if the user is banned from confessions before showing the modal
+    dt.isBanned(interaction.guild?.id!, interaction.user.id)
+      ? interaction.reply({
+          content: "You are banned from confessions in this server!",
+          ephemeral: true
+        })
+      : interaction.showModal(submit);
+  }
+});
+
 BotClient.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isModalSubmit()) {
     return;
@@ -121,7 +143,6 @@ BotClient.on(Events.InteractionCreate, async interaction => {
       const userConfessionEmbed = new EmbedBuilder()
         .setColor(color)
         .setTitle(`Anonymous Confession \`${messageId}\``)
-        // @ts-ignore
         .setDescription(messageContent);
 
       isAttachment(attachment) && userConfessionEmbed.setImage(attachment);
@@ -129,7 +150,6 @@ BotClient.on(Events.InteractionCreate, async interaction => {
       const adminConfessionEmbed = new EmbedBuilder()
         .setColor(color)
         .setTitle(`Anonymous Confession \`${messageId}\``)
-        // @ts-ignore
         .setDescription(messageContent)
         .addFields(
           {
@@ -158,16 +178,6 @@ BotClient.on(Events.InteractionCreate, async interaction => {
       ).send({
         embeds: [userConfessionEmbed],
         components: [actionRow]
-      });
-
-      const collector = message.createMessageComponentCollector({
-        componentType: ComponentType.Button
-      });
-
-      collector.on("collect", i => {
-        if (i.customId === "submitConfession") {
-          i.showModal(submit);
-        }
       });
 
       await (BotClient.channels.cache.get(adminChannel!) as TextChannel).send({
