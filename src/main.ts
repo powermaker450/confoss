@@ -165,7 +165,7 @@ BotClient.on(Events.InteractionCreate, async interaction => {
       isAttachment(attachment) && adminConfessionEmbed.setImage(attachment);
 
       const submitConfessionButton = new ButtonBuilder()
-        .setCustomId("submitConfession")
+        .setCustomId("requestSubmit")
         .setLabel("Submit a Confession")
         .setStyle(ButtonStyle.Primary);
 

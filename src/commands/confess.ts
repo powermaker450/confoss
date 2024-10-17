@@ -41,6 +41,7 @@ export const data = new SlashCommandBuilder()
       .setName("message")
       .setRequired(true)
       .setDescription("What you want to confess")
+      .setMaxLength(2000)
   )
   .addStringOption(option =>
     option
