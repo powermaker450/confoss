@@ -52,9 +52,12 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction: ChatInputCommandInteraction) {
   // TODO: This all works as intended, but I'd like for it so be a reusable function
   // instead because all of this is used in src/main.ts
+  const { id: guildId } = interaction.guild!;
+  const { id: userId } = interaction.user;
+
   try {
     // If the user is banned in this guild, don't let them post
-    if (dt.isBannedByUser(interaction.guild?.id!, interaction.user.id)) {
+    if (dt.isBannedByUser(guildId, userId)) {
       return interaction.reply({
         content: "You are banned from confessions in this server!",
         ephemeral: true
@@ -62,7 +65,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     }
 
     // If no guild info is present for this guild, don't let the user post
-    if (!dt.getGuildInfo(interaction.guild?.id!)) {
+    if (!dt.getGuildInfo(guildId)) {
       return interaction.reply({
         content:
           "The bot hasn't been set up yet! Ask the server admins to set it up.",
@@ -70,10 +73,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       });
     }
 
-    const confessChannel = dt.getGuildInfo(interaction.guild?.id!)?.settings
-      .confessChannel;
-    const adminChannel = dt.getGuildInfo(interaction.guild?.id!)?.settings
-      .modChannel;
+    const confessChannel = dt.getGuildInfo(guildId)?.settings.confessChannel;
+    const adminChannel = dt.getGuildInfo(guildId)?.settings.modChannel;
 
     const messageContent = `"${interaction.options.getString("message")}"`;
     const attachment = interaction.options.getString("attachment")!;
@@ -121,11 +122,11 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       .addFields(
         {
           name: "Author",
-          value: `<@${interaction.user.id}>`
+          value: `<@${userId}>`
         },
         {
           name: "Author ID",
-          value: interaction.user.id
+          value: userId
         }
       );
 
@@ -153,9 +154,10 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       components: [actionRow]
     });
 
-    adminChannel && await (BotClient.channels.cache.get(adminChannel!) as TextChannel).send({
-      embeds: [adminConfessionEmbed]
-    });
+    adminChannel &&
+      (await (BotClient.channels.cache.get(adminChannel!) as TextChannel).send({
+        embeds: [adminConfessionEmbed]
+      }));
 
     dt.addConfession(
       message,
@@ -166,8 +168,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       attachment
     );
 
-    const confessionsLength = dt.getGuildInfo(interaction.guild?.id!)
-      ?.confessions.length!;
+    const confessionsLength = dt.getGuildInfo(guildId)!.confessions.length;
 
     // If there are 2 or more confessions, remove the previous confession's button components
     if (confessionsLength >= 2) {
@@ -175,9 +176,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         BotClient.channels.cache.get(confessChannel!) as TextChannel
       ).messages
         .fetch(
-          dt.getGuildInfo(interaction.guild?.id!)?.confessions[
-            confessionsLength - 2
-          ].messageId!
+          dt.getGuildInfo(guildId)!.confessions[confessionsLength - 2].messageId
         )
         .then(message => {
           message.edit({ components: [] });

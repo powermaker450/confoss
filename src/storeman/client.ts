@@ -82,9 +82,9 @@ export class StoreMan {
   }
 
   // Checks if a guild is not set up
-  public checkSetup(id: string): boolean {
+  public checkSetup(guildId: string): boolean {
     for (const guild of this.data) {
-      if (guild.id === id) {
+      if (guild.id === guildId) {
         return true;
       }
     }
@@ -93,9 +93,9 @@ export class StoreMan {
   }
 
   // Sets up a guild and stores it in the persistent file
-  public setup(id: string, opts: GuildSettings): void {
+  public setup(guildId: string, opts: GuildSettings): void {
     this.data.push({
-      id: id,
+      id: guildId,
       confessions: [],
       settings: opts
     });
@@ -104,16 +104,16 @@ export class StoreMan {
   }
 
   // Clear the settings for a given guild
-  public clearSettings(id: string): void {
+  public clearSettings(guildId: string): void {
     this.data = this.data.filter(guild => {
-      return guild.id !== id;
+      return guild.id !== guildId;
     });
     this.saveFile();
   }
 
-  public getGuildInfo(id: string): GuildData | null {
+  public getGuildInfo(guildId: string): GuildData | null {
     for (const guild of this.data) {
-      if (guild.id === id) {
+      if (guild.id === guildId) {
         return guild;
       }
     }
@@ -130,7 +130,7 @@ export class StoreMan {
     content: string,
     attachment?: string
   ): boolean {
-    const guildId = message.guild?.id;
+    const { id: guildId } = message.guild!;
 
     for (const guild of this.data) {
       if (guild.id === guildId) {

@@ -61,7 +61,7 @@ export const data = new SlashCommandBuilder()
   );
 
 export async function execute(interaction: ChatInputCommandInteraction) {
-  const guildId = interaction.guild?.id!;
+  const { id: guildId } = interaction.guild!;
 
   // /confessmod ban <id>
   if (interaction.options.getSubcommand() === "ban") {
@@ -95,7 +95,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     }
     // /confessmod list
   } else if (interaction.options.getSubcommand() === "list") {
-    const bannedMembers = dt.getBans(interaction.guild?.id!);
+    const bannedMembers = dt.getBans(guildId);
 
     let content = bannedMembers.length
       ? "Banned Members:\n"
@@ -124,10 +124,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     }
     // /confessmod pardon <id>
   } else if (interaction.options.getSubcommand() === "pardon") {
-    const result = dt.removeBan(
-      interaction.guild?.id!,
-      interaction.options.getString("id")!
-    );
+    const result = dt.removeBan(guildId, interaction.options.getString("id")!);
 
     try {
       return result

@@ -183,9 +183,12 @@ BotClient.on(Events.InteractionCreate, async interaction => {
         components: [actionRow]
       });
 
-      adminChannel && await (BotClient.channels.cache.get(adminChannel!) as TextChannel).send({
-        embeds: [adminConfessionEmbed]
-      });
+      adminChannel &&
+        (await (
+          BotClient.channels.cache.get(adminChannel!) as TextChannel
+        ).send({
+          embeds: [adminConfessionEmbed]
+        }));
 
       dt.addConfession(
         message,

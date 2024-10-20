@@ -38,14 +38,16 @@ export const data = new SlashCommandBuilder()
   .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild);
 
 export async function execute(interaction: CommandInteraction) {
-  if (dt.checkSetup(interaction.guild?.id!)) {
+  const { id: guildId } = interaction.guild!;
+  const { displayName: username } = interaction.user;
+
+  if (dt.checkSetup(guildId)) {
     return interaction.reply({
       content: "This guild has already been set up!",
       ephemeral: true
     });
   }
 
-  const guildId = interaction.guild?.id;
   let confessChannel: string, logChannel: string;
 
   const channelList = new ChannelSelectMenuBuilder()
@@ -56,17 +58,18 @@ export async function execute(interaction: CommandInteraction) {
   const skipButton = new ButtonBuilder()
     .setCustomId("skipModChannel")
     .setLabel("Skip")
-    .setStyle(ButtonStyle.Secondary)
+    .setStyle(ButtonStyle.Secondary);
 
   const channelRow =
     new ActionRowBuilder<ChannelSelectMenuBuilder>().addComponents(channelList);
 
-  const buttonRow = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(skipButton);
+  const buttonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    skipButton
+  );
 
   try {
     const response = await interaction.reply({
-      content: `# Let's get started, ${interaction.user.displayName}!\nFirst, let's choose a channel for your confessions.`,
+      content: `# Let's get started, ${username}!\nFirst, let's choose a channel for your confessions.`,
       ephemeral: true,
       components: [channelRow]
     });
@@ -77,7 +80,7 @@ export async function execute(interaction: CommandInteraction) {
     });
 
     collector.on("collect", async i => {
-      [ confessChannel ] = i.values;
+      [confessChannel] = i.values;
 
       await i.update({
         content: "Awesome!",
@@ -111,18 +114,18 @@ export async function execute(interaction: CommandInteraction) {
         componentType: ComponentType.Button,
         time: 45_000
       });
-      
+
       let skipped = false;
 
       logCollector.on("collect", async ij => {
-        [ logChannel ] = ij.values;
+        [logChannel] = ij.values;
 
         await ij.update({
           content: "Setup Complete!",
           components: []
         });
 
-        dt.setup(guildId!, {
+        dt.setup(guildId, {
           confessChannel: confessChannel,
           modChannel: logChannel,
           bans: []
@@ -138,7 +141,7 @@ export async function execute(interaction: CommandInteraction) {
             content: "Setup complete!",
             components: []
           });
-          
+
           dt.setup(guildId!, {
             confessChannel: confessChannel,
             bans: []
@@ -148,11 +151,12 @@ export async function execute(interaction: CommandInteraction) {
           logCollector.stop();
           skipCollector.stop();
         }
-      })
+      });
 
       logCollector.on("end", content => {
         // If there is no content and the channel hasn't been skipped, follow up with an error message.
-        (!content.size && !skipped) &&
+        !content.size &&
+          !skipped &&
           interaction.followUp({
             content: "No channel selected. Please try again.",
             ephemeral: true,

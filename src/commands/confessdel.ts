@@ -38,8 +38,11 @@ export const data = new SlashCommandBuilder()
   );
 
 export async function execute(interaction: ChatInputCommandInteraction) {
+  const { id: guildId } = interaction.guild!;
+  const { id: userId } = interaction.user;
+
   // If there is no guild info, don't let the user delete anything
-  if (!dt.getGuildInfo(interaction.guild?.id!)) {
+  if (!dt.getGuildInfo(guildId)) {
     return interaction.reply({
       content:
         "The bot hasn't been set up yet! Ask the server admins to set it up.",
@@ -48,9 +51,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   }
 
   const idVal = interaction.options.getString("id")!;
-  const result = dt.getConfession(interaction.guild?.id!, idVal);
+  const result = dt.getConfession(guildId, idVal);
   // If there is a result, and the user is either an author or has manage messages
-  const allowedByUser = result && result.authorId === interaction.user.id;
+  const allowedByUser = result && result.authorId === userId;
   const allowedByMod =
     result &&
     interaction.memberPermissions?.has(PermissionFlagsBits.ManageMessages);
@@ -58,12 +61,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   // If a confession is found with the given ID, check if the user is the one that posted it, and delete it if they are.
   // Otherwise, don't let the user delete anything.
   if (allowedByUser || allowedByMod) {
-    const confession = dt.getConfession(
-      interaction.guild?.id!,
-      idVal
-    )?.messageId;
-    const channelId = dt.getGuildInfo(interaction.guild?.id!)?.settings
-      .confessChannel!;
+    const confession = dt.getConfession(guildId, idVal)!.messageId;
+    const channelId = dt.getGuildInfo(guildId)!.settings.confessChannel;
     const emptyEmbed = new EmbedBuilder()
       .setColor(getRandomColor())
       .setTitle("Confession Deleted")
@@ -76,7 +75,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     try {
       // Replace the given confession with an empty embed
       await (BotClient.channels.cache.get(channelId) as TextChannel).messages
-        .fetch(confession!)
+        .fetch(confession)
         .then(e => {
           e.edit({
             embeds: [emptyEmbed]

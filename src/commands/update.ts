@@ -16,7 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  PermissionFlagsBits,
+  SlashCommandBuilder
+} from "discord.js";
 import { deployCommands } from "../bot";
 import Logger from "../utils/Logger";
 
@@ -39,15 +43,18 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     });
   }
 
-  deployCommands({ guildId: guildId }); 
+  deployCommands({ guildId: guildId });
 
   cooldownList.add(guildId);
   logger.log(`Applied cooldown to "${guildName}"`);
 
-  setTimeout(() => {
-    cooldownList.delete(guildId);
-    logger.log(`Removed cooldown from "${guildName}"`);
-  }, minutes*60*1000);
+  setTimeout(
+    () => {
+      cooldownList.delete(guildId);
+      logger.log(`Removed cooldown from "${guildName}"`);
+    },
+    minutes * 60 * 1000
+  );
 
   return interaction.reply({
     content: "Commands refreshed.",
