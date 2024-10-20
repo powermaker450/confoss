@@ -21,11 +21,13 @@ import * as confessdel from "./confessdel";
 import * as confessmod from "./confessmod";
 import * as ping from "./ping";
 import * as setup from "./setup";
+import * as update from "./update";
 
 export const commands = {
   confess,
   confessdel,
   confessmod,
   ping,
-  setup
+  setup,
+  update
 };
