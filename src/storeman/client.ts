@@ -135,7 +135,7 @@ export class StoreMan {
     for (const guild of this.data) {
       if (guild.id === guildId) {
         // If the author's user ID is in the ban list, don't let them post a confession.
-        if (this.isBanned(guildId, author)) {
+        if (this.isBannedByUser(guildId, author)) {
           return false;
         }
 
@@ -215,11 +215,25 @@ export class StoreMan {
   }
 
   // Check if a certain user is banned within a guild.
-  public isBanned(guildId: string, userId: string): boolean {
+  public isBannedByUser(guildId: string, userId: string): boolean {
     for (const guild of this.data) {
       if (guild.id === guildId) {
         for (const ban of guild.settings.bans) {
           if (ban.user === userId) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  public isBannedById(guildId: string, confessionId: string): boolean {
+    for (const guild of this.data) {
+      if (guild.id === guildId) {
+        for (const ban of guild.settings.bans) {
+          if (ban.confessionId === confessionId) {
             return true;
           }
         }
@@ -247,7 +261,7 @@ export class StoreMan {
       if (guild.id === guildId) {
         if (confession) {
           // Only add the user to the ban list if they aren't banned already
-          !this.isBanned(guildId, confession.authorId) &&
+          !this.isBannedByUser(guildId, confession.authorId) &&
             guild.settings.bans.push({
               user: confession.authorId,
               confessionId: confessionId

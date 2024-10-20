@@ -97,7 +97,7 @@ BotClient.on(Events.InteractionCreate, async interaction => {
 
   if (requestSubmit) {
     // Check if the user is banned from confessions before showing the modal
-    dt.isBanned(interaction.guild?.id!, interaction.user.id)
+    dt.isBannedByUser(interaction.guild?.id!, interaction.user.id)
       ? interaction.reply({
           content: "You are banned from confessions in this server!",
           ephemeral: true
@@ -118,7 +118,7 @@ BotClient.on(Events.InteractionCreate, async interaction => {
     );
 
     try {
-      if (dt.isBanned(interaction.guild?.id!, interaction.user.id)) {
+      if (dt.isBannedByUser(interaction.guild?.id!, interaction.user.id)) {
         return interaction.reply({
           content: "You are banned from confessions in this server!",
           ephemeral: true

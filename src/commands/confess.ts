@@ -54,7 +54,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   // instead because all of this is used in src/main.ts
   try {
     // If the user is banned in this guild, don't let them post
-    if (dt.isBanned(interaction.guild?.id!, interaction.user.id)) {
+    if (dt.isBannedByUser(interaction.guild?.id!, interaction.user.id)) {
       return interaction.reply({
         content: "You are banned from confessions in this server!",
         ephemeral: true

@@ -67,7 +67,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   if (interaction.options.getSubcommand() === "ban") {
     const confessionId = interaction.options.getString("id")!;
 
-    if (dt.isBanned(guildId, confessionId)) {
+    if (dt.isBannedById(guildId, confessionId)) {
       try {
         return interaction.reply({
           content: "That user is already banned!",
