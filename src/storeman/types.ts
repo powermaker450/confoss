@@ -25,9 +25,15 @@ export interface Confession {
   attachment?: string;
 }
 
+export enum BanReason {
+  ById,
+  ByUser
+}
+
 export interface ConfessionBan {
   user: string;
-  confessionId: string;
+  confessionId?: string;
+  method: BanReason;
 }
 
 export interface GuildSettings {

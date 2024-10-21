@@ -18,11 +18,16 @@
 
 import {
   ChatInputCommandInteraction,
+  heading,
+  HeadingLevel,
+  inlineCode,
+  italic,
   PermissionFlagsBits,
   SlashCommandBuilder
 } from "discord.js";
 import { dt } from "../main";
 import Logger from "../utils/Logger";
+import { BanReason } from "../storeman";
 
 const logger = new Logger("(/) confessban");
 
@@ -33,7 +38,7 @@ export const data = new SlashCommandBuilder()
   .addSubcommand(ban =>
     ban
       .setName("ban")
-      .setDescription("Ban a user from confessions")
+      .setDescription("Ban an ID from confessions")
       .addStringOption(option =>
         option
           .setName("id")
@@ -41,6 +46,14 @@ export const data = new SlashCommandBuilder()
           .setMinLength(4)
           .setMaxLength(4)
           .setRequired(true)
+      )
+  )
+  .addSubcommand(banuser =>
+    banuser
+      .setName("banuser")
+      .setDescription("Ban a user from confessions")
+      .addUserOption(user =>
+        user.setName("user").setDescription("The user to ban").setRequired(true)
       )
   )
   .addSubcommand(list =>
@@ -78,7 +91,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       }
     }
 
-    const result = dt.addBan(guildId, confessionId);
+    const result = dt.addBanById(guildId, confessionId);
 
     try {
       return result
@@ -93,34 +106,72 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     } catch (err) {
       logger.error("A ban interaction error occured:", err);
     }
+    // /confessmod banuser <user>
+  } else if (interaction.options.getSubcommand() === "banuser") {
+    const { id: userId } = interaction.options.getUser("user")!;
+
+    const result = dt.addBanByUser(guildId, userId);
+
+    try {
+      return result
+        ? interaction.reply({
+            content: "User was banned.",
+            ephemeral: true
+          })
+        : interaction.reply({
+            content: "How did we get here? (An error occured.)}",
+            ephemeral: true
+          });
+    } catch (err) {
+      logger.error("A banuser interaction error occured:", err);
+    }
     // /confessmod list
   } else if (interaction.options.getSubcommand() === "list") {
     const bannedMembers = dt.getBans(guildId);
 
-    let content = bannedMembers.length
-      ? "Banned Members:\n"
-      : "There are no banned members.";
+    const determineContent = () => {
+      if (!bannedMembers.length) {
+        return "There are no bans.";
+      }
 
-    // For each member, add them to the message content.
-    // It will end up looking something like this:
-    //
-    //  Banned Members:
-    //
-    //  @user1 | a1b2
-    //  @user2 | c3d4
-    //  @user3 | e5f6
-    //
-    for (const member of bannedMembers) {
-      content += `\n<@${member.user}> | \`${member.confessionId}\``;
+      let userHead = heading("Users:", HeadingLevel.Two);
+      let userCount = false;
+
+      let idHead = "\n" + heading("Confessions:", HeadingLevel.Two);
+      let idCount = false;
+      for (const member of bannedMembers) {
+
+        if (member.method === BanReason.ByUser) {
+          userHead += "\n" + `<@${member.user}>`;
+          userCount = true;
+        } else if (member.method === BanReason.ById) {
+          const confession = dt.getConfession(guildId, member.confessionId!)!;
+          idHead += `\nConfession ${inlineCode(member.confessionId!)}: ${italic(confession.content)}`;
+          idCount = true;
+        }
+      }
+
+      // If there are users and confessions use both headers, otherwise use whichever is populated
+      if (userCount && idCount) {
+        return userHead + idHead;
+      } else {
+        return userCount
+          ? userHead
+          : idHead;
+      }
     }
 
     try {
       return interaction.reply({
-        content: content,
+        content: determineContent(),
         ephemeral: true
       });
     } catch (err) {
       logger.error("A banlist interaction error occured:", err);
+      return interaction.reply({
+        content: "A server-side error occurred when getting the ban list.",
+        ephemeral: true
+      });
     }
     // /confessmod pardon <id>
   } else if (interaction.options.getSubcommand() === "pardon") {

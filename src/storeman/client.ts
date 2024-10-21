@@ -18,7 +18,13 @@
 
 import fs from "fs";
 import crypto from "crypto";
-import { Confession, ConfessionBan, GuildData, GuildSettings } from "./types";
+import {
+  BanReason,
+  Confession,
+  ConfessionBan,
+  GuildData,
+  GuildSettings
+} from "./types";
 import { DATA_DIR } from "./config";
 import { CommandInteraction, Message } from "discord.js";
 import Logger from "../utils/Logger";
@@ -254,7 +260,7 @@ export class StoreMan {
   }
 
   // Attempts to ban a user from confessions.
-  public addBan(guildId: string, confessionId: string): boolean {
+  public addBanById(guildId: string, confessionId: string): boolean {
     const confession = this.getConfession(guildId, confessionId);
 
     for (const guild of this.data) {
@@ -264,12 +270,30 @@ export class StoreMan {
           !this.isBannedByUser(guildId, confession.authorId) &&
             guild.settings.bans.push({
               user: confession.authorId,
-              confessionId: confessionId
+              confessionId: confessionId,
+              method: BanReason.ById
             });
 
           this.saveFile();
           return true;
         }
+      }
+    }
+
+    return false;
+  }
+
+  public addBanByUser(guildId: string, userId: string): boolean {
+    for (const guild of this.data) {
+      if (guild.id === guildId) {
+        // Only add the user to the ban list if they aren't banned already
+        !this.isBannedByUser(guildId, userId) && guild.settings.bans.push({
+          user: userId,
+          method: BanReason.ByUser
+        });
+
+        this.saveFile();
+        return true;
       }
     }
 
