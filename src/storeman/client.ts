@@ -287,10 +287,11 @@ export class StoreMan {
     for (const guild of this.data) {
       if (guild.id === guildId) {
         // Only add the user to the ban list if they aren't banned already
-        !this.isBannedByUser(guildId, userId) && guild.settings.bans.push({
-          user: userId,
-          method: BanReason.ByUser
-        });
+        !this.isBannedByUser(guildId, userId) &&
+          guild.settings.bans.push({
+            user: userId,
+            method: BanReason.ByUser
+          });
 
         this.saveFile();
         return true;

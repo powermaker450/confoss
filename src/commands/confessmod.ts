@@ -140,7 +140,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       let idHead = "\n" + heading("Confessions:", HeadingLevel.Two);
       let idCount = false;
       for (const member of bannedMembers) {
-
         if (member.method === BanReason.ByUser) {
           userHead += "\n" + `<@${member.user}>`;
           userCount = true;
@@ -155,11 +154,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       if (userCount && idCount) {
         return userHead + idHead;
       } else {
-        return userCount
-          ? userHead
-          : idHead;
+        return userCount ? userHead : idHead;
       }
-    }
+    };
 
     try {
       return interaction.reply({
