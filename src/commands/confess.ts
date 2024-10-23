@@ -54,7 +54,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   // TODO: This all works as intended, but I'd like for it so be a reusable function
   // instead because all of this is used in src/main.ts
   const { id: guildId } = interaction.guild!;
-  const { id: userId } = interaction.user;
+  const { id: userId, displayName: userName } = interaction.user;
 
   try {
     // If the user is banned in this guild, don't let them post
@@ -74,7 +74,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       });
     }
 
-    const confessChannel = dt.getGuildInfo(guildId)?.settings.confessChannel;
+    const confessChannel = dt.getGuildInfo(guildId)!.settings.confessChannel;
     const adminChannel = dt.getGuildInfo(guildId)?.settings.modChannel;
 
     const messageContent = `"${interaction.options.getString("message")}"`;
@@ -163,8 +163,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     dt.addConfession(
       message,
       messageId,
-      interaction.user.displayName,
-      interaction.user.id,
+      userName,
+      userId,
       messageContent,
       attachment
     );
@@ -173,14 +173,18 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
     // If there are 2 or more confessions, remove the previous confession's button components
     if (confessionsLength >= 2) {
-      await (
-        BotClient.channels.cache.get(confessChannel!) as TextChannel
-      ).messages
+      (BotClient.channels.cache.get(confessChannel) as TextChannel).messages
         .fetch(
           dt.getGuildInfo(guildId)!.confessions[confessionsLength - 2].messageId
         )
         .then(message => {
           message.edit({ components: [] });
+        })
+        .catch(err => {
+          logger.error(
+            "An error occured removing embeds from the previous message:",
+            err
+          );
         });
     }
 

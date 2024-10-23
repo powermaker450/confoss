@@ -73,7 +73,7 @@ export const data = new SlashCommandBuilder()
           .setRequired(true)
       )
   )
-  .addSubcommand(pardonuser => 
+  .addSubcommand(pardonuser =>
     pardonuser
       .setName("pardonuser")
       .setDescription("Pardon a user from confessions")
@@ -184,7 +184,10 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     }
     // /confessmod pardon <id>
   } else if (interaction.options.getSubcommand() === "pardon") {
-    const result = dt.removeBanById(guildId, interaction.options.getString("id")!);
+    const result = dt.removeBanById(
+      guildId,
+      interaction.options.getString("id")!
+    );
 
     try {
       return result
@@ -202,7 +205,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   } else if (interaction.options.getSubcommand() === "pardonuser") {
     const { id: userId } = interaction.options.getUser("user")!;
 
-    const result = dt.removeBanByUser(guildId, userId); 
+    const result = dt.removeBanByUser(guildId, userId);
 
     try {
       return result
