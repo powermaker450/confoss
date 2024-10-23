@@ -31,6 +31,7 @@ import { StoreMan } from "./storeman";
 import Logger from "./utils/Logger";
 import getRandomColor from "./utils/getRandomColor";
 import { submit } from "./modals";
+import { messageOpts } from "./constants";
 
 export const dt = new StoreMan(StoreMan.checkFile());
 const logger = new Logger("Main");
@@ -100,7 +101,7 @@ BotClient.on(Events.InteractionCreate, async interaction => {
     dt.isBannedByUser(interaction.guild?.id!, interaction.user.id)
       ? interaction.reply({
           content: "You are banned from confessions in this server!",
-          ephemeral: true
+          ...messageOpts
         })
       : interaction.showModal(submit);
   }
@@ -121,7 +122,7 @@ BotClient.on(Events.InteractionCreate, async interaction => {
       if (dt.isBannedByUser(interaction.guild?.id!, interaction.user.id)) {
         return interaction.reply({
           content: "You are banned from confessions in this server!",
-          ephemeral: true
+          ...messageOpts
         });
       }
 
@@ -129,7 +130,7 @@ BotClient.on(Events.InteractionCreate, async interaction => {
         return interaction.reply({
           content:
             "The bot hasn't been set up yet! Ask the server admins to set it up.",
-          ephemeral: true
+          ...messageOpts
         });
       }
 
@@ -218,7 +219,7 @@ BotClient.on(Events.InteractionCreate, async interaction => {
 
       return interaction.reply({
         content: "Confession sent!",
-        ephemeral: true
+        ...messageOpts
       });
     } catch (err) {
       logger.error("An error occured:", err);

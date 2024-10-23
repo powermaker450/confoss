@@ -29,6 +29,7 @@ import {
 } from "discord.js";
 import { dt } from "../main";
 import Logger from "../utils/Logger";
+import { messageOpts } from "../constants";
 
 const logger = new Logger("(/) setup");
 
@@ -44,7 +45,7 @@ export async function execute(interaction: CommandInteraction) {
   if (dt.checkSetup(guildId)) {
     return interaction.reply({
       content: "This guild has already been set up!",
-      ephemeral: true
+      ...messageOpts
     });
   }
 
@@ -70,7 +71,7 @@ export async function execute(interaction: CommandInteraction) {
   try {
     const response = await interaction.reply({
       content: `# Let's get started, ${username}!\nFirst, let's choose a channel for your confessions.`,
-      ephemeral: true,
+      ...messageOpts,
       components: [channelRow]
     });
 
@@ -101,7 +102,7 @@ export async function execute(interaction: CommandInteraction) {
 
       const logResponse = await interaction.followUp({
         content: "# Now, select a logging channel, for moderation purposes.",
-        ephemeral: true,
+        ...messageOpts,
         components: [logChannelRow, buttonRow]
       });
 
@@ -159,7 +160,7 @@ export async function execute(interaction: CommandInteraction) {
           !skipped &&
           interaction.followUp({
             content: "No channel selected. Please try again.",
-            ephemeral: true,
+            ...messageOpts,
             components: []
           });
       });
@@ -170,7 +171,7 @@ export async function execute(interaction: CommandInteraction) {
       !collected.size &&
         interaction.followUp({
           content: "No channel selected. Try again.",
-          ephemeral: true,
+          ...messageOpts,
           components: []
         });
     });

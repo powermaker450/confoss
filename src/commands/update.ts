@@ -23,6 +23,7 @@ import {
 } from "discord.js";
 import { deployCommands } from "../bot";
 import Logger from "../utils/Logger";
+import { messageOpts } from "../constants";
 
 const logger = new Logger("(/) update");
 const minutes = 5;
@@ -39,7 +40,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   if (cooldownList.has(guildId)) {
     return interaction.reply({
       content: `You can only run the update command once every ${minutes} minutes.`,
-      ephemeral: true
+      ...messageOpts
     });
   }
 
@@ -58,6 +59,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   return interaction.reply({
     content: "Commands refreshed.",
-    ephemeral: true
+    ...messageOpts
   });
 }

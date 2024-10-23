@@ -30,6 +30,7 @@ import { dt } from "../main";
 import { StoreMan } from "../storeman";
 import getRandomColor from "../utils/getRandomColor";
 import Logger from "../utils/Logger";
+import { messageOpts } from "../constants";
 
 const logger = new Logger("(/) confess");
 
@@ -60,7 +61,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     if (dt.isBannedByUser(guildId, userId)) {
       return interaction.reply({
         content: "You are banned from confessions in this server!",
-        ephemeral: true
+        ...messageOpts
       });
     }
 
@@ -69,7 +70,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       return interaction.reply({
         content:
           "The bot hasn't been set up yet! Ask the server admins to set it up.",
-        ephemeral: true
+        ...messageOpts
       });
     }
 
@@ -185,7 +186,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
     return interaction.reply({
       content: "Confession sent!",
-      ephemeral: true
+      ...messageOpts
     });
   } catch (err) {
     logger.error("An error occured:", err);

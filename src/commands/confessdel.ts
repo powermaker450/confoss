@@ -27,6 +27,7 @@ import { dt } from "../main";
 import { BotClient } from "../bot";
 import getRandomColor from "../utils/getRandomColor";
 import Logger from "../utils/Logger";
+import { messageOpts } from "../constants";
 
 const logger = new Logger("(/) confessdel");
 
@@ -46,7 +47,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     return interaction.reply({
       content:
         "The bot hasn't been set up yet! Ask the server admins to set it up.",
-      ephemeral: true
+      ...messageOpts
     });
   }
 
@@ -84,13 +85,13 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
       return interaction.reply({
         content: "Confession removed.",
-        ephemeral: true
+        ...messageOpts
       });
     } catch (err) {
       logger.error("A confession delete error occured:", err);
       return interaction.reply({
         content: "An error occured.",
-        ephemeral: true
+        ...messageOpts
       });
     }
   } else {
@@ -99,18 +100,18 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       return result
         ? interaction.reply({
             content: "You are not allowed to remove this confession.",
-            ephemeral: true
+            ...messageOpts
           })
         : interaction.reply({
             content:
               "Either the confession wasn't found or you may not be allowed to remove it.",
-            ephemeral: true
+            ...messageOpts
           });
     } catch (err) {
       logger.error("A confession delete interaction occured:", err);
       return interaction.reply({
         content: "An error occured.",
-        ephemeral: true
+        ...messageOpts
       });
     }
   }

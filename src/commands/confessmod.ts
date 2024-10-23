@@ -28,6 +28,7 @@ import {
 import { dt } from "../main";
 import Logger from "../utils/Logger";
 import { BanReason } from "../storeman";
+import { messageOpts } from "../constants";
 
 const logger = new Logger("(/) confessban");
 
@@ -95,7 +96,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       try {
         return interaction.reply({
           content: "That user is already banned!",
-          ephemeral: true
+          ...messageOpts
         });
       } catch (err) {
         logger.error("A ban interaction error occured:", err);
@@ -108,11 +109,11 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       return result
         ? interaction.reply({
             content: "User was banned.",
-            ephemeral: true
+            ...messageOpts
           })
         : interaction.reply({
             content: "No confession with that ID was found.",
-            ephemeral: true
+            ...messageOpts
           });
     } catch (err) {
       logger.error("A ban interaction error occured:", err);
@@ -127,11 +128,11 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       return result
         ? interaction.reply({
             content: "User was banned.",
-            ephemeral: true
+            ...messageOpts
           })
         : interaction.reply({
             content: "How did we get here? (An error occured.)}",
-            ephemeral: true
+            ...messageOpts
           });
     } catch (err) {
       logger.error("A banuser interaction error occured:", err);
@@ -172,13 +173,13 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     try {
       return interaction.reply({
         content: determineContent(),
-        ephemeral: true
+        ...messageOpts
       });
     } catch (err) {
       logger.error("A banlist interaction error occured:", err);
       return interaction.reply({
         content: "A server-side error occurred when getting the ban list.",
-        ephemeral: true
+        ...messageOpts
       });
     }
     // /confessmod pardon <id>
@@ -189,11 +190,11 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       return result
         ? interaction.reply({
             content: "User was unbanned.",
-            ephemeral: true
+            ...messageOpts
           })
         : interaction.reply({
             content: "No confession with that ID was found.",
-            ephemeral: true
+            ...messageOpts
           });
     } catch (err) {
       logger.error("An unban interaction error occured:", err);
@@ -207,11 +208,11 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       return result
         ? interaction.reply({
             content: "User was unbanned.",
-            ephemeral: true
+            ...messageOpts
           })
         : interaction.reply({
             content: "That user is not banned from confessions.",
-            ephemeral: true
+            ...messageOpts
           });
     } catch (err) {
       logger.error("An unban user interaction error occured:", err);
@@ -220,6 +221,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   return interaction.reply({
     content: "Unknown error",
-    ephemeral: true
+    ...messageOpts
   });
 }
