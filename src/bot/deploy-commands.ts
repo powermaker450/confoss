@@ -29,7 +29,7 @@ const commandsData = Object.values(commands).map(command =>
   command.data.toJSON()
 );
 
-const rest = new REST({ version: "9" }).setToken(BOT_TOKEN);
+export const rest = new REST({ version: "9" }).setToken(BOT_TOKEN);
 
 export async function deployCommands({ guildId }: DeployCommandsProps) {
   try {

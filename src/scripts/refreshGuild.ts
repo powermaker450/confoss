@@ -16,21 +16,31 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Events } from "discord.js";
-import { BotClient, deployCommands } from "../bot";
+import { Events, Routes } from "discord.js";
+import { BOT_ID, BotClient, deployCommands, rest } from "../bot";
 
 if (process.argv.length < 3 || !process.argv[2]) {
   console.log("You need to specify the guild ID to refresh.");
   process.exit(1);
 }
 
+const [, , guildId] = process.argv;
+
 BotClient.on(Events.ClientReady, () => {
   try {
-    BotClient.fetchGuildPreview(process.argv[2])
-      .then(({ id, name }) => {
-        deployCommands({ guildId: id });
-        console.log(`Updated (/) commands for "${name}".`);
-        process.exit(0);
+    rest
+      .put(Routes.applicationGuildCommands(BOT_ID, guildId), { body: [] })
+      .then(() => {
+        console.log("Deleted (/) commands.");
+        deployCommands({ guildId: guildId })
+          .then(() => {
+            console.log("Successfully reloaded (/) commands.");
+            process.exit(0);
+          })
+          .catch(err => {
+            console.log("An error occurred refreshing (/) commands:", err);
+            process.exit(1);
+          });
       })
       .catch(err => {
         console.log("An error occured refreshing (/) commands:", err);

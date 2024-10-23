@@ -6,7 +6,7 @@
   "scripts": {
     "build": "rm -rf ./dist && tsc -p .",
     "start": "node ./dist/main.js",
-    "refresh": "node ./dist/scripts/updateGuild.js",
+    "refresh": "node ./dist/scripts/refreshGuild.js",
     "prettier": "if prettier -v >/dev/null 2>&1; then prettier . --write; else npx prettier . --write; fi",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
