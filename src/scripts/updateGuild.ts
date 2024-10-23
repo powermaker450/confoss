@@ -26,10 +26,10 @@ if (process.argv.length < 3 || !process.argv[2]) {
 
 BotClient.on(Events.ClientReady, () => {
   try {
-    BotClient.guilds.fetch(process.argv[2])
-      .then(guild => {
-        deployCommands({ guildId: guild.id });
-        console.log(`Updated (/) commands for "${guild.name}".`);
+    BotClient.fetchGuildPreview(process.argv[2])
+      .then(({ id, name }) => {
+        deployCommands({ guildId: id });
+        console.log(`Updated (/) commands for "${name}".`);
         process.exit(0);
       })
       .catch(err => {
@@ -40,4 +40,4 @@ BotClient.on(Events.ClientReady, () => {
     console.log("An error occurred refreshing (/) commands:", err);
     process.exit(1);
   }
-})
+});
