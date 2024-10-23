@@ -302,7 +302,7 @@ export class StoreMan {
   }
 
   // Attempts to pardon a user from a ban. If sucessfully completed, returns true, false if otherwise.
-  public removeBan(guildId: string, confessionId: string): boolean {
+  public removeBanById(guildId: string, confessionId: string): boolean {
     for (const guild of this.data) {
       if (guild.id === guildId) {
         if (this.getConfession(guildId, confessionId)) {
@@ -314,6 +314,25 @@ export class StoreMan {
 
           this.saveFile();
           return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  public removeBanByUser(guildId: string, userId: string): boolean {
+    for (const guild of this.data) {
+      if (guild.id === guildId) {
+        for (const ban of guild.settings.bans) {
+          if (ban.method === BanReason.ByUser && ban.user === userId) {
+            guild.settings.bans = guild.settings.bans.filter(ban => {
+              return ban.user !== userId;
+            });
+
+            this.saveFile();
+            return true;
+          }
         }
       }
     }

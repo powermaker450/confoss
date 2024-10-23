@@ -71,6 +71,17 @@ export const data = new SlashCommandBuilder()
           .setMaxLength(4)
           .setRequired(true)
       )
+  )
+  .addSubcommand(pardonuser => 
+    pardonuser
+      .setName("pardonuser")
+      .setDescription("Pardon a user from confessions")
+      .addUserOption(user =>
+        user
+          .setName("user")
+          .setDescription("The user to pardon")
+          .setRequired(true)
+      )
   );
 
 export async function execute(interaction: ChatInputCommandInteraction) {
@@ -172,7 +183,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     }
     // /confessmod pardon <id>
   } else if (interaction.options.getSubcommand() === "pardon") {
-    const result = dt.removeBan(guildId, interaction.options.getString("id")!);
+    const result = dt.removeBanById(guildId, interaction.options.getString("id")!);
 
     try {
       return result
@@ -186,6 +197,24 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           });
     } catch (err) {
       logger.error("An unban interaction error occured:", err);
+    }
+  } else if (interaction.options.getSubcommand() === "pardonuser") {
+    const { id: userId } = interaction.options.getUser("user")!;
+
+    const result = dt.removeBanByUser(guildId, userId); 
+
+    try {
+      return result
+        ? interaction.reply({
+            content: "User was unbanned.",
+            ephemeral: true
+          })
+        : interaction.reply({
+            content: "That user is not banned from confessions.",
+            ephemeral: true
+          });
+    } catch (err) {
+      logger.error("An unban user interaction error occured:", err);
     }
   }
 
