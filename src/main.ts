@@ -16,22 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  ChatInputCommandInteraction,
-  EmbedBuilder,
-  Events,
-  TextChannel
-} from "discord.js";
+import { ChatInputCommandInteraction, Events } from "discord.js";
 import { BotClient, BOT_TOKEN, deployCommands } from "./bot";
 import { commands } from "./commands";
 import { StoreMan } from "./storeman";
 import Logger from "./utils/Logger";
-import getRandomColor from "./utils/getRandomColor";
 import { submit } from "./modals";
 import { messageOpts } from "./constants";
+import { submitConfession } from "./commandutils";
 
 export const dt = new StoreMan(StoreMan.checkFile());
 const logger = new Logger("Main");
@@ -107,7 +99,7 @@ BotClient.on(Events.InteractionCreate, async interaction => {
   }
 });
 
-BotClient.on(Events.InteractionCreate, async interaction => {
+BotClient.on(Events.InteractionCreate, interaction => {
   if (!interaction.isModalSubmit()) {
     return;
   }
@@ -119,108 +111,9 @@ BotClient.on(Events.InteractionCreate, async interaction => {
     );
 
     try {
-      if (dt.isBannedByUser(interaction.guild?.id!, interaction.user.id)) {
-        return interaction.reply({
-          content: "You are banned from confessions in this server!",
-          ...messageOpts
-        });
-      }
-
-      if (!dt.getGuildInfo(interaction.guild?.id!)) {
-        return interaction.reply({
-          content:
-            "The bot hasn't been set up yet! Ask the server admins to set it up.",
-          ...messageOpts
-        });
-      }
-
-      const confessChannel = dt.getGuildInfo(interaction.guild?.id!)?.settings
-        .confessChannel;
-      const adminChannel = dt.getGuildInfo(interaction.guild?.id!)?.settings
-        .modChannel;
-
-      const isAttachment = (text: string) =>
-        text && (text.startsWith("http://") || text.startsWith("https://"));
-
-      const color = getRandomColor();
-      const messageId = StoreMan.genId();
-      const userConfessionEmbed = new EmbedBuilder()
-        .setColor(color)
-        .setTitle(`Anonymous Confession \`${messageId}\``)
-        .setDescription(messageContent);
-
-      isAttachment(attachment) && userConfessionEmbed.setImage(attachment);
-
-      const adminConfessionEmbed = new EmbedBuilder()
-        .setColor(color)
-        .setTitle(`Anonymous Confession \`${messageId}\``)
-        .setDescription(messageContent)
-        .addFields(
-          {
-            name: "Author",
-            value: `<@${interaction.user.id}>`
-          },
-          {
-            name: "Author ID",
-            value: interaction.user.id
-          }
-        );
-
-      isAttachment(attachment) && adminConfessionEmbed.setImage(attachment);
-
-      const submitConfessionButton = new ButtonBuilder()
-        .setCustomId("requestSubmit")
-        .setLabel("Submit a Confession")
-        .setStyle(ButtonStyle.Primary);
-
-      const actionRow = new ActionRowBuilder<ButtonBuilder>().setComponents(
-        submitConfessionButton
-      );
-
-      const message = await (
-        BotClient.channels.cache.get(confessChannel!) as TextChannel
-      ).send({
-        embeds: [userConfessionEmbed],
-        components: [actionRow]
-      });
-
-      adminChannel &&
-        (await (
-          BotClient.channels.cache.get(adminChannel!) as TextChannel
-        ).send({
-          embeds: [adminConfessionEmbed]
-        }));
-
-      dt.addConfession(
-        message,
-        messageId,
-        interaction.user.displayName,
-        interaction.user.id,
-        messageContent,
-        attachment
-      );
-
-      const confessionsLength = dt.getGuildInfo(interaction.guild?.id!)
-        ?.confessions.length!;
-
-      if (confessionsLength >= 2) {
-        await (
-          BotClient.channels.cache.get(confessChannel!) as TextChannel
-        ).messages
-          .fetch(
-            dt.getGuildInfo(interaction.guild?.id!)?.confessions[
-              confessionsLength - 2
-            ].messageId!
-          )
-          .then(message => {
-            message.edit({ components: [] });
-          });
-      }
-
-      return interaction.reply({
-        content: "Confession sent!",
-        ...messageOpts
-      });
+      attachment
+        ? submitConfession(interaction, messageContent)
+        : submitConfession(interaction, messageContent, attachment);
     } catch (err) {
       logger.error("An error occured:", err);
     }
