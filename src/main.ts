@@ -95,7 +95,9 @@ BotClient.on(Events.InteractionCreate, async interaction => {
           content: "You are banned from confessions in this server!",
           ...messageOpts
         })
-      : interaction.showModal(submit);
+        .catch(err => logger.error("An error occured during a requestSubmit", err))
+      : interaction.showModal(submit)
+        .catch(err => logger.error("An error occured during a requestSubmit", err));
   }
 });
 
@@ -110,13 +112,8 @@ BotClient.on(Events.InteractionCreate, interaction => {
       "confessionAttachment"
     );
 
-    try {
-      attachment
-        ? submitConfession(interaction, messageContent)
-        : submitConfession(interaction, messageContent, attachment);
-    } catch (err) {
-      logger.error("An error occured:", err);
-    }
+    submitConfession(interaction, messageContent, attachment ? attachment : undefined)
+      .catch(err => logger.error("An error occured when submitting a confession", err));
   }
 });
 

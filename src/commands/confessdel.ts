@@ -73,46 +73,34 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           : "[Confession removed by moderator]"
       );
 
-    try {
-      // Replace the given confession with an empty embed
-      await (BotClient.channels.cache.get(channelId) as TextChannel).messages
-        .fetch(confession)
-        .then(e => {
-          e.edit({
-            embeds: [emptyEmbed]
-          });
+    // Replace the given confession with an empty embed
+    (BotClient.channels.cache.get(channelId) as TextChannel).messages
+      .fetch(confession)
+      .then(message => {
+        message.edit({
+          embeds: [emptyEmbed]
         });
 
-      return interaction.reply({
-        content: "Confession removed.",
-        ...messageOpts
-      });
-    } catch (err) {
-      logger.error("A confession delete error occured:", err);
-      return interaction.reply({
-        content: "An error occured.",
-        ...messageOpts
-      });
-    }
+        return interaction.reply({
+          content: "Confession removed.",
+          ...messageOpts
+        });
+      })
+      .catch(async err => {
+        logger.error("An error occured deleting a confession:", err);
+
+        return interaction.reply({
+          content: "An error occured when trying to delete that confession.",
+          ...messageOpts
+        })
+        .catch(err => logger.error("An error occured following up:", err));
+      })
   } else {
-    try {
-      // If there was a result, the user wasn't allowed to remove it, otherwise it didn't exist.
-      return result
-        ? interaction.reply({
-            content: "You are not allowed to remove this confession.",
-            ...messageOpts
-          })
-        : interaction.reply({
-            content:
-              "Either the confession wasn't found or you may not be allowed to remove it.",
-            ...messageOpts
-          });
-    } catch (err) {
-      logger.error("A confession delete interaction occured:", err);
-      return interaction.reply({
-        content: "An error occured.",
-        ...messageOpts
-      });
-    }
+    // If there was a result, the user wasn't allowed to remove it, otherwise it didn't exist.
+    return interaction.reply({
+      content: result ? "You are not allowed to remove this confession." : "Either the confession wasn't found or you may not be allowed to remove it.",
+      ...messageOpts
+    })
+    .catch(err => logger.error("A confession delete error occured:", err));
   }
 }

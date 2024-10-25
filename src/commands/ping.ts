@@ -17,11 +17,15 @@
  */
 
 import { CommandInteraction, SlashCommandBuilder } from "discord.js";
+import Logger from "../utils/Logger";
 
 export const data = new SlashCommandBuilder()
   .setName("ping")
   .setDescription("Ping!");
 
+const logger = new Logger("(/) ping");
+
 export async function execute(interaction: CommandInteraction) {
-  return interaction.reply("I'm an OSS confessions bot!");
+  return interaction.reply("I'm an OSS confessions bot!")
+    .catch(err => logger.error("I'm honestly suprised this even happened:", err));
 }

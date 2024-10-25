@@ -41,7 +41,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     return interaction.reply({
       content: `You can only run the update command once every ${minutes} minutes.`,
       ...messageOpts
-    });
+    })
+    .catch(err => logger.error("An update error occured:", err));
   }
 
   deployCommands({ guildId: guildId });
@@ -60,5 +61,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   return interaction.reply({
     content: "Commands refreshed.",
     ...messageOpts
-  });
+  })
+  .catch(err => logger.error("An update error occured", err));
 }

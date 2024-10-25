@@ -46,7 +46,8 @@ export async function execute(interaction: CommandInteraction) {
     return interaction.reply({
       content: "This guild has already been set up!",
       ...messageOpts
-    });
+    })
+    .catch(err => logger.error("An error occured during setup:", err));
   }
 
   let confessChannel: string, logChannel: string;
@@ -176,6 +177,6 @@ export async function execute(interaction: CommandInteraction) {
         });
     });
   } catch (err) {
-    logger.error("An error occured:", err);
+    logger.error("An error occured during setup:", err);
   }
 }
