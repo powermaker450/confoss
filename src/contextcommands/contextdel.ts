@@ -16,19 +16,33 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { CommandInteraction, SlashCommandBuilder } from "discord.js";
+import {
+  ApplicationCommandType,
+  ContextMenuCommandBuilder,
+  ContextMenuCommandInteraction,
+  ContextMenuCommandType
+} from "discord.js";
 import Logger from "../utils/Logger";
+import { messageOpts } from "../constants";
+import { BotClient } from "../bot";
 
-export const data = new SlashCommandBuilder()
-  .setName("ping")
-  .setDescription("Ping!");
+const logger = new Logger("(:) contextdel");
 
-const logger = new Logger("(/) ping");
+export const friendlyName = "Delete Confession";
 
-export async function execute(interaction: CommandInteraction) {
-  return interaction
-    .reply("I'm an OSS confessions bot!")
-    .catch(err =>
-      logger.error("I'm honestly suprised this even happened:", err)
-    );
+export const data = new ContextMenuCommandBuilder()
+  .setName(friendlyName)
+  // This is what it's supposed to be, but tsc gets upset if the type isn't coerced
+  // .setType(ApplicationCommandType.Message)
+  .setType(ApplicationCommandType.Message as ContextMenuCommandType);
+
+export async function execute(interaction: ContextMenuCommandInteraction) {
+  const text = `Target: ${interaction.targetId}`;
+
+  logger.log(text);
+
+  return interaction.reply({
+    content: text,
+    ...messageOpts
+  });
 }

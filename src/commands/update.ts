@@ -38,11 +38,12 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const { id: guildId, name: guildName } = interaction.guild!;
 
   if (cooldownList.has(guildId)) {
-    return interaction.reply({
-      content: `You can only run the update command once every ${minutes} minutes.`,
-      ...messageOpts
-    })
-    .catch(err => logger.error("An update error occured:", err));
+    return interaction
+      .reply({
+        content: `You can only run the update command once every ${minutes} minutes.`,
+        ...messageOpts
+      })
+      .catch(err => logger.error("An update error occured:", err));
   }
 
   deployCommands({ guildId: guildId });
@@ -58,9 +59,10 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     minutes * 60 * 1000
   );
 
-  return interaction.reply({
-    content: "Commands refreshed.",
-    ...messageOpts
-  })
-  .catch(err => logger.error("An update error occured", err));
+  return interaction
+    .reply({
+      content: "Commands refreshed.",
+      ...messageOpts
+    })
+    .catch(err => logger.error("An update error occured", err));
 }

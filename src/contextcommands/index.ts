@@ -16,5 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export * from "./deleteConfession";
-export * from "./submitConfession";
+import * as contextdel from "./contextdel";
+
+export const contextCommands = {
+  contextdel
+};

@@ -43,11 +43,12 @@ export async function execute(interaction: CommandInteraction) {
   const { displayName: username } = interaction.user;
 
   if (dt.checkSetup(guildId)) {
-    return interaction.reply({
-      content: "This guild has already been set up!",
-      ...messageOpts
-    })
-    .catch(err => logger.error("An error occured during setup:", err));
+    return interaction
+      .reply({
+        content: "This guild has already been set up!",
+        ...messageOpts
+      })
+      .catch(err => logger.error("An error occured during setup:", err));
   }
 
   let confessChannel: string, logChannel: string;

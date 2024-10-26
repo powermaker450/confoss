@@ -93,34 +93,39 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     const confessionId = interaction.options.getString("id")!;
 
     if (dt.isBannedById(guildId, confessionId)) {
-      return interaction.reply({
-        content: "That user is already banned!",
-        ...messageOpts
-      })
-      .catch(err => logger.error("A ban interaction error occured:", err));
+      return interaction
+        .reply({
+          content: "That user is already banned!",
+          ...messageOpts
+        })
+        .catch(err => logger.error("A ban interaction error occured:", err));
     }
 
     const result = dt.addBanById(guildId, confessionId);
 
-    return interaction.reply({
-      content: result ? "User was banned." : "No confession with that ID was found.",
-      ...messageOpts
-    })
-    .catch(err => logger.error("A ban interaction error occured:", err));
+    return interaction
+      .reply({
+        content: result
+          ? "User was banned."
+          : "No confession with that ID was found.",
+        ...messageOpts
+      })
+      .catch(err => logger.error("A ban interaction error occured:", err));
 
-  // /confessmod banuser <user>
+    // /confessmod banuser <user>
   } else if (interaction.options.getSubcommand() === "banuser") {
     const { id: userId } = interaction.options.getUser("user")!;
 
     const result = dt.addBanByUser(guildId, userId);
 
-    return interaction.reply({
-      content: result ? "User was banned." : "How did we get here?",
-      ...messageOpts
-    })
-    .catch(err => logger.log("A ban user interaction error occured:", err));
+    return interaction
+      .reply({
+        content: result ? "User was banned." : "How did we get here?",
+        ...messageOpts
+      })
+      .catch(err => logger.log("A ban user interaction error occured:", err));
 
-  // /confessmod list
+    // /confessmod list
   } else if (interaction.options.getSubcommand() === "list") {
     const bannedMembers = dt.getBans(guildId);
 
@@ -153,36 +158,43 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       }
     };
 
-    return interaction.reply({
-      content: determineContent(),
-      ...messageOpts
-    })
-    .catch(err => logger.error("A banlist interaction error occured:", err));
+    return interaction
+      .reply({
+        content: determineContent(),
+        ...messageOpts
+      })
+      .catch(err => logger.error("A banlist interaction error occured:", err));
 
-  // /confessmod pardon <id>
+    // /confessmod pardon <id>
   } else if (interaction.options.getSubcommand() === "pardon") {
     const result = dt.removeBanById(
       guildId,
       interaction.options.getString("id")!
     );
 
-    return interaction.reply({
-      content: result ? "User was unbanned." : "No confession with that ID was found.",
-      ...messageOpts
-    })
-    .catch(err => logger.log("An unban interaction error occured", err));
+    return interaction
+      .reply({
+        content: result
+          ? "User was unbanned."
+          : "No confession with that ID was found.",
+        ...messageOpts
+      })
+      .catch(err => logger.log("An unban interaction error occured", err));
 
-  // /confessmod pardonuser <user>
+    // /confessmod pardonuser <user>
   } else if (interaction.options.getSubcommand() === "pardonuser") {
     const { id: userId } = interaction.options.getUser("user")!;
 
     const result = dt.removeBanByUser(guildId, userId);
 
-    return interaction.reply({
-      content: result ? "User was unbanned." : "That user is not banned from confessions.",
-      ...messageOpts
-    })
-    .catch(err => logger.log("Error replying to user ban interaction", err));
+    return interaction
+      .reply({
+        content: result
+          ? "User was unbanned."
+          : "That user is not banned from confessions.",
+        ...messageOpts
+      })
+      .catch(err => logger.log("Error replying to user ban interaction", err));
   }
 
   // Catch-all

@@ -16,18 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import {
-  ChatInputCommandInteraction,
-  EmbedBuilder,
-  PermissionFlagsBits,
-  SlashCommandBuilder,
-  TextChannel
-} from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import { dt } from "../main";
-import { BotClient } from "../bot";
-import getRandomColor from "../utils/getRandomColor";
 import Logger from "../utils/Logger";
 import { messageOpts } from "../constants";
+import { deleteConfession } from "../commandutils";
 
 const logger = new Logger("(/) confessdel");
 
@@ -40,7 +33,6 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   const { id: guildId } = interaction.guild!;
-  const { id: userId } = interaction.user;
 
   // If there is no guild info, don't let the user delete anything
   if (!dt.getGuildInfo(guildId)) {
@@ -52,55 +44,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   }
 
   const idVal = interaction.options.getString("id")!;
-  const result = dt.getConfession(guildId, idVal);
-  // If there is a result, and the user is either an author or has manage messages
-  const allowedByUser = result && result.authorId === userId;
-  const allowedByMod =
-    result &&
-    interaction.memberPermissions?.has(PermissionFlagsBits.ManageMessages);
 
-  // If a confession is found with the given ID, check if the user is the one that posted it, and delete it if they are.
-  // Otherwise, don't let the user delete anything.
-  if (allowedByUser || allowedByMod) {
-    const confession = dt.getConfession(guildId, idVal)!.messageId;
-    const channelId = dt.getGuildInfo(guildId)!.settings.confessChannel;
-    const emptyEmbed = new EmbedBuilder()
-      .setColor(getRandomColor())
-      .setTitle("Confession Deleted")
-      .setDescription(
-        allowedByUser
-          ? "[Confession removed by user]"
-          : "[Confession removed by moderator]"
-      );
-
-    // Replace the given confession with an empty embed
-    (BotClient.channels.cache.get(channelId) as TextChannel).messages
-      .fetch(confession)
-      .then(message => {
-        message.edit({
-          embeds: [emptyEmbed]
-        });
-
-        return interaction.reply({
-          content: "Confession removed.",
-          ...messageOpts
-        });
-      })
-      .catch(async err => {
-        logger.error("An error occured deleting a confession:", err);
-
-        return interaction.reply({
-          content: "An error occured when trying to delete that confession.",
-          ...messageOpts
-        })
-        .catch(err => logger.error("An error occured following up:", err));
-      })
-  } else {
-    // If there was a result, the user wasn't allowed to remove it, otherwise it didn't exist.
-    return interaction.reply({
-      content: result ? "You are not allowed to remove this confession." : "Either the confession wasn't found or you may not be allowed to remove it.",
-      ...messageOpts
-    })
-    .catch(err => logger.error("A confession delete error occured:", err));
-  }
+  return deleteConfession(interaction, idVal).catch(err =>
+    logger.error("An error occured:", err)
+  );
 }

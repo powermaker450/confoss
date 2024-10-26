@@ -16,17 +16,31 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { REST, Routes } from "discord.js";
+import {
+  REST,
+  RESTPostAPIChatInputApplicationCommandsJSONBody,
+  RESTPostAPIContextMenuApplicationCommandsJSONBody,
+  Routes
+} from "discord.js";
 import { commands } from "../commands";
 import { BOT_ID, BOT_TOKEN } from "./config";
 import { DeployCommandsProps } from "./types";
 import Logger from "../utils/Logger";
 import { BotClient } from "./client";
+import { contextCommands } from "../contextcommands";
 
 const logger = new Logger("Deployer");
 
-const commandsData = Object.values(commands).map(command =>
-  command.data.toJSON()
+let commandsData: (
+  | RESTPostAPIChatInputApplicationCommandsJSONBody
+  | RESTPostAPIContextMenuApplicationCommandsJSONBody
+)[] = [];
+
+Object.values(commands).forEach(command =>
+  commandsData.push(command.data.toJSON())
+);
+Object.values(contextCommands).forEach(command =>
+  commandsData.push(command.data.toJSON())
 );
 
 export const rest = new REST({ version: "9" }).setToken(BOT_TOKEN);

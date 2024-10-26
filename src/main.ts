@@ -16,7 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { ChatInputCommandInteraction, Events } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  Events
+} from "discord.js";
 import { BotClient, BOT_TOKEN, deployCommands } from "./bot";
 import { commands } from "./commands";
 import { StoreMan } from "./storeman";
@@ -24,6 +27,7 @@ import Logger from "./utils/Logger";
 import { submit } from "./modals";
 import { messageOpts } from "./constants";
 import { submitConfession } from "./commandutils";
+import { contextCommands } from "./contextcommands";
 
 export const dt = new StoreMan(StoreMan.checkFile());
 const logger = new Logger("Main");
@@ -54,6 +58,20 @@ BotClient.on(Events.InteractionCreate, async interaction => {
     commands[commandName as keyof typeof commands].execute(
       interaction as ChatInputCommandInteraction
     );
+  }
+});
+
+BotClient.on(Events.InteractionCreate, async interaction => {
+  if (!interaction.isContextMenuCommand()) {
+    return;
+  }
+
+  const { commandName } = interaction;
+
+  for (const command of Object.values(contextCommands)) {
+    if (command.friendlyName === commandName) {
+      command.execute(interaction);
+    }
   }
 });
 
@@ -91,13 +109,19 @@ BotClient.on(Events.InteractionCreate, async interaction => {
   if (requestSubmit) {
     // Check if the user is banned from confessions before showing the modal
     dt.isBannedByUser(interaction.guild?.id!, interaction.user.id)
-      ? interaction.reply({
-          content: "You are banned from confessions in this server!",
-          ...messageOpts
-        })
-        .catch(err => logger.error("An error occured during a requestSubmit", err))
-      : interaction.showModal(submit)
-        .catch(err => logger.error("An error occured during a requestSubmit", err));
+      ? interaction
+          .reply({
+            content: "You are banned from confessions in this server!",
+            ...messageOpts
+          })
+          .catch(err =>
+            logger.error("An error occured during a requestSubmit", err)
+          )
+      : interaction
+          .showModal(submit)
+          .catch(err =>
+            logger.error("An error occured during a requestSubmit", err)
+          );
   }
 });
 
@@ -112,8 +136,13 @@ BotClient.on(Events.InteractionCreate, interaction => {
       "confessionAttachment"
     );
 
-    submitConfession(interaction, messageContent, attachment ? attachment : undefined)
-      .catch(err => logger.error("An error occured when submitting a confession", err));
+    submitConfession(
+      interaction,
+      messageContent,
+      attachment ? attachment : undefined
+    ).catch(err =>
+      logger.error("An error occured when submitting a confession", err)
+    );
   }
 });
 
