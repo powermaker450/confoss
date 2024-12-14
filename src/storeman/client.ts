@@ -182,6 +182,20 @@ export class StoreMan {
     return null;
   }
 
+  public getConfessionById(guildId: string, messageId: string): Confession | null {
+    for (const guild of this.data) {
+      if (guild.id === guildId) {
+        for (const confession of guild.confessions) {
+          if (confession.messageId === messageId) {
+            return confession;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
   // Attempts to delete a confession. If it is sucessfully deleted, returns true, else false.
   public delConfesssion(
     { guild, user }: CommandInteraction,

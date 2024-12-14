@@ -23,8 +23,9 @@ import {
   ContextMenuCommandType
 } from "discord.js";
 import Logger from "../utils/Logger";
+import { dt } from "../main";
+import { deleteConfession } from "../commandutils";
 import { messageOpts } from "../constants";
-import { BotClient } from "../bot";
 
 const logger = new Logger("(:) contextdel");
 
@@ -37,12 +38,20 @@ export const data = new ContextMenuCommandBuilder()
   .setType(ApplicationCommandType.Message as ContextMenuCommandType);
 
 export async function execute(interaction: ContextMenuCommandInteraction) {
-  const text = `Target: ${interaction.targetId}`;
+  const { guildId, targetId } = interaction;
 
-  logger.log(text);
+  if (!dt.getConfessionById(guildId!, targetId)) {
+    return interaction.reply({
+      content: "Either that confession wasn't found or you aren't allowed to remove it.",
+      ...messageOpts
+    });
+  }
 
-  return interaction.reply({
-    content: text,
-    ...messageOpts
-  });
+  const { id: confessionId } = dt.getConfessionById(guildId!, targetId)!;
+
+  try {
+    deleteConfession(interaction, confessionId);
+  } catch (err) {
+    logger.error("An error occured:", err);
+  }
 }
