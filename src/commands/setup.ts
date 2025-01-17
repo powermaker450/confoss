@@ -42,7 +42,7 @@ export async function execute(interaction: CommandInteraction) {
   const { id: guildId } = interaction.guild!;
   const { displayName: username } = interaction.user;
 
-  if (dt.checkSetup(guildId)) {
+  if (await dt.checkSetup(guildId)) {
     return interaction
       .reply({
         content: "This guild has already been set up!",

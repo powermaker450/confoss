@@ -38,7 +38,7 @@ export async function deleteConfession(
   const { id: guildId } = interaction.guild!;
   const { id: userId } = interaction.user;
 
-  const result = dt.getConfession(guildId, idVal);
+  const result = await dt.getConfession(guildId, idVal);
   // If there is a result, and the user is either an author or has manage messages
   const allowedByUser = result && result.authorId === userId;
   const allowedByMod =
@@ -48,8 +48,8 @@ export async function deleteConfession(
   // If a confession is found with the given ID, check if the user is the one that posted it, and delete it if they are.
   // Otherwise, don't let the user delete anything.
   if (allowedByUser || allowedByMod) {
-    const confession = dt.getConfession(guildId, idVal)!.messageId;
-    const channelId = dt.getGuildInfo(guildId)!.settings.confessChannel;
+    const confession = (await dt.getConfession(guildId, idVal))!.messageId;
+    const channelId = (await dt.getGuildInfo(guildId))!.confessChannel;
     const emptyEmbed = new EmbedBuilder()
       .setColor(getRandomColor())
       .setTitle("Confession Deleted")

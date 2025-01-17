@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Guild {
+  guildId String @id
+  confessChannel String @unique
+  modChannel String? @unique
+
+  confessions Confession[]
+  bans Ban[]
+}
+
+model Confession {
+  id String @id
+  messageId String @unique
+  author String
+  authorId String
+  guildId String
+  content String
+  attachment String?
+
+  guild Guild @relation(fields: [guildId], references: [guildId])
+}
+
+model Ban {
+  authorId String @id
+  guildId String
+  confessionId String?
+  reason Int
+
+  guild Guild @relation(fields: [guildId], references: [guildId])
+}
