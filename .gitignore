@@ -1,5 +1,6 @@
 .env
 node_modules/
+persist/
 dist/
 prisma/migrations/
 prisma/persist/
