@@ -42,7 +42,8 @@ export async function execute(interaction: ContextMenuCommandInteraction) {
 
   if (!dt.getConfessionById(guildId!, targetId)) {
     return interaction.reply({
-      content: "Either that confession wasn't found or you aren't allowed to remove it.",
+      content:
+        "Either that confession wasn't found or you aren't allowed to remove it.",
       ...messageOpts
     });
   }

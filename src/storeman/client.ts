@@ -26,8 +26,16 @@ import {
   GuildSettings
 } from "./types";
 import { DATA_DIR } from "./config";
-import { CommandInteraction, Message } from "discord.js";
+import {
+  bold,
+  CommandInteraction,
+  heading,
+  Message,
+  TextChannel,
+  unorderedList
+} from "discord.js";
 import Logger from "../utils/Logger";
+import { BotClient } from "../bot";
 
 export class StoreMan {
   public static readonly fullPath: string =
@@ -103,7 +111,8 @@ export class StoreMan {
     this.data.push({
       id: guildId,
       confessions: [],
-      settings: opts
+      settings: opts,
+      versionNote: "v0.1.1"
     });
 
     this.saveFile();
@@ -125,6 +134,33 @@ export class StoreMan {
     }
 
     return null;
+  }
+
+  public sendReleaseNotes(): void {
+    for (const guild of this.data) {
+      if (!guild.settings.modChannel) {
+        return;
+      }
+
+      if (guild.versionNote !== "v0.1.1") {
+        // TODO: Manual release notes for now
+        const channel = BotClient.channels.cache.get(guild.settings.modChannel);
+        const content =
+          heading("🎉 Release v0.1.1\n") +
+          unorderedList([
+            "No notable changes with this release, just popping in to say hi! :)",
+            "You'll get updates about future releases right here in the mod channel!"
+          ]) +
+          "\n\n" +
+          bold("Full Changelog: ") +
+          "https://codeberg.org/powermaker450/confoss/commits/tag/v0.1.1";
+
+        (channel as TextChannel).send(content).catch(StoreMan.logger.log);
+        guild.versionNote = "v0.1.1";
+      }
+    }
+
+    this.saveFile();
   }
 
   // Attempts to add a confession. Returns true if the confession is sent, false if otherwise.
@@ -182,7 +218,10 @@ export class StoreMan {
     return null;
   }
 
-  public getConfessionById(guildId: string, messageId: string): Confession | null {
+  public getConfessionById(
+    guildId: string,
+    messageId: string
+  ): Confession | null {
     for (const guild of this.data) {
       if (guild.id === guildId) {
         for (const confession of guild.confessions) {

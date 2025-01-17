@@ -16,10 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import {
-  ChatInputCommandInteraction,
-  Events
-} from "discord.js";
+import { ChatInputCommandInteraction, Events } from "discord.js";
 import { BotClient, BOT_TOKEN, deployCommands } from "./bot";
 import { commands } from "./commands";
 import { StoreMan } from "./storeman";
@@ -34,6 +31,8 @@ const logger = new Logger("Main");
 
 BotClient.once("ready", client => {
   logger.log(`We're ready! Logged in as ${client.user.tag}`);
+
+  dt.sendReleaseNotes();
 });
 
 // Deploy the commands for a new guild
