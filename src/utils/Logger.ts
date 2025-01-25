@@ -16,78 +16,55 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import chalk from "chalk";
+import { green, yellow, red, bold } from "chalk";
 import { LOG_LEVEL } from "./config";
 
 export default class Logger {
-  private _main: string;
-  public readonly _loglevel = +LOG_LEVEL;
+  private main: string;
   public readonly name: string;
   private readonly isMain: boolean;
 
-  public static readonly emp = chalk.green;
-  public static readonly wrn = chalk.yellow;
-  public static readonly err = chalk.red;
-
-  public static readonly bold = chalk.bold;
-  public static readonly itl = chalk.italic;
-  public static readonly udln = chalk.underline;
-
-  private static readonly _wrn = Logger.wrn("[WARN] ");
-  private static readonly _err = Logger.err("[ERROR] ");
-
-  public static readonly anon = Logger.bold.gray(
-    `[ConfessBot | ${Logger.emp("Anonymous ")}] `
+  private static mainDeclared = false;
+  public static readonly loglevel = +LOG_LEVEL;
+  private static readonly wrn = yellow("[WARN] ");
+  private static readonly err = red("[ERROR] ");
+  private static readonly main = bold.gray(
+    `[ConfessBot | ${green("Anonymous ")}] `
   );
 
   constructor(origin?: string) {
+    if (origin === "Main" && Logger.mainDeclared) {
+      throw new Error("Main Logger has already been instantiated.");
+    }
+
     this.name = origin ?? "Anonymous";
     this.isMain = this.name === "Main";
+    Logger.mainDeclared = this.name === "Main";
 
-    this._main = Logger.bold.gray(`[ConfessBot | ${Logger.emp(this.name)}] `);
+    this.main = bold.gray(`[ConfessBot | ${green(this.name)}] `);
   }
 
-  private static argDet(args: any[]): any | any[] {
-    return args.length === 1 ? args : args[0];
+  public log(...args: any[]): void {
+    (this.isMain || Logger.loglevel > 2) && console.log(this.main, ...args);
   }
 
-  public log(text?: any, ...args: any[]): void {
-    if (this.isMain || this._loglevel > 2) {
-      args.length
-        ? console.log(this._main + text, Logger.argDet(args))
-        : console.log(this._main + text);
-    }
+  public static log(...args: any[]): void {
+    this.loglevel > 2 && console.log(this.main, ...args);
   }
 
-  public static log(text?: any, ...args: any[]): void {
-    args.length
-      ? console.log(Logger.anon + text, Logger.argDet(args))
-      : console.log(Logger.anon + text);
+  public warn(...args: any[]): void {
+    Logger.loglevel > 1 && console.warn(Logger.wrn + this.main, ...args);
   }
 
-  public warn(text?: any, ...args: any[]): void {
-    if (this._loglevel > 1) {
-      args.length
-        ? console.warn(Logger._wrn + this._main + text, Logger.argDet(args))
-        : console.warn(Logger._wrn + this._main + text);
-    }
+  public static warn(...args: any[]): void {
+    this.loglevel > 1 && console.warn(this.wrn, ...args);
   }
 
-  public static warn(text?: any, ...args: any[]): void {
-    args.length
-      ? console.warn(Logger._wrn + Logger.anon + text, Logger.argDet(args))
-      : console.warn(Logger._wrn + Logger.anon + text);
+  public error(...args: any[]): void {
+    console.error(Logger.err + this.main, ...args);
   }
 
-  public error(text?: any, ...args: any[]): void {
-    args.length
-      ? console.error(Logger._err + this._main + text, Logger.argDet(args))
-      : console.error(Logger._err + this._main + text);
-  }
-
-  public static error(text?: any, ...args: any[]): void {
-    args.length
-      ? console.error(Logger._err + Logger.anon + text, Logger.argDet(args))
-      : console.error(Logger._err + Logger.anon + text);
+  public static error(...args: any[]): void {
+    console.error(this.err + this.main, ...args);
   }
 }
