@@ -46,4 +46,5 @@ export interface GuildData {
   id: string;
   confessions: Confession[];
   settings: GuildSettings;
+  versionNote?: string;
 }
