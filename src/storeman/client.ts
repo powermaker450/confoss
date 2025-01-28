@@ -46,7 +46,7 @@ export class StoreMan {
 
   // Sets up a guild and stores it in the persistent file
   public async setup(guildId: string, { confessChannel, modChannel }: GuildSettings): Promise<void> {
-    await this.client.guild.create({ data: { guildId, confessChannel, modChannel } }).then(() => StoreMan.logger.log("Guild created"));
+    await this.client.guild.create({ data: { guildId, confessChannel, modChannel, versionNote: "v0.1.1" } }).then(() => StoreMan.logger.log("Guild created"));
   }
 
   // Clear the settings for a given guild
