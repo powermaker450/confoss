@@ -18,12 +18,56 @@
 
 import fs from "fs";
 import Logger from "../utils/Logger";
+import { GuildData } from "../storeman";
+import { PrismaClient } from "@prisma/client";
 
-const oldData = JSON.parse(
+const client = new PrismaClient();
+const oldData: GuildData[] = JSON.parse(
   fs.readFileSync("./persist/data.json").toString()
 );
 
-Logger.log(null, oldData);
-Logger.warn("The migration script is not functional yet. No data has been migrated.");
+async function migrate() {
+  const dbGuilds = oldData.map(
+    ({
+      id: guildId,
+      settings: { confessChannel, modChannel },
+      versionNote
+    }) => ({
+      guildId,
+      confessChannel,
+      modChannel,
+      versionNote: versionNote ?? "v0.1.1"
+    })
+  );
+  const dbConfessions = [];
+  const dbBans = [];
 
-process.exit(1);
+  for (const {
+    id: guildId,
+    confessions,
+    settings: { bans }
+  } of oldData) {
+    dbConfessions.push(
+      ...confessions.map(confession => ({ ...confession, guildId }))
+    );
+
+    dbBans.push(
+      ...bans.map(({ user: authorId, method: reason, confessionId }) => ({
+        authorId,
+        reason,
+        confessionId,
+        guildId
+      }))
+    );
+  }
+
+  await client.guild.createMany({ data: dbGuilds });
+  await client.confession.createMany({ data: dbConfessions });
+  await client.ban.createMany({ data: dbBans });
+}
+
+migrate()
+  .then(() => Logger.log("Migration success."))
+  .catch(err => {
+    Logger.error("A migration error occured:", err);
+  });
