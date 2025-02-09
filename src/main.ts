@@ -16,10 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import {
-  ChatInputCommandInteraction,
-  Events
-} from "discord.js";
+import { ChatInputCommandInteraction, Events } from "discord.js";
 import { BotClient, BOT_TOKEN, deployCommands } from "./bot";
 import { commands } from "./commands";
 import { StoreMan } from "./storeman";
@@ -90,7 +87,7 @@ BotClient.on(Events.InteractionCreate, async interaction => {
 
   if (requestSubmit) {
     // Check if the user is banned from confessions before showing the modal
-    await dt.isBannedByUser(interaction.guild?.id!, interaction.user.id)
+    (await dt.isBannedByUser(interaction.guild?.id!, interaction.user.id))
       ? interaction
           .reply({
             content: "You are banned from confessions in this server!",

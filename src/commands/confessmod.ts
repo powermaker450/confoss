@@ -144,7 +144,10 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           userHead += "\n" + `<@${member.authorId}>`;
           userCount = true;
         } else if (member.reason === BanReason.ById) {
-          const confession = (await dt.getConfession(guildId, member.confessionId!))!;
+          const confession = (await dt.getConfession(
+            guildId,
+            member.confessionId!
+          ))!;
           idHead += `\nConfession ${inlineCode(member.confessionId!)}: ${italic(confession.content)}`;
           idCount = true;
         }

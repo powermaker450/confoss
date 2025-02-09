@@ -145,8 +145,17 @@ export async function submitConfession(
 
   // If there are 2 or more confessions, remove the previous confession's button components
   if (confessions.length >= 2) {
-    const previousMessage = await (BotClient.channels.cache.get(confessChannel) as TextChannel).messages.fetch(confessions[confessions.length - 2].messageId);
-    previousMessage.edit({ components: [] }).catch(err => logger.error("An error occured removing embeds from the previous message:", err));
+    const previousMessage = await (
+      BotClient.channels.cache.get(confessChannel) as TextChannel
+    ).messages.fetch(confessions[confessions.length - 2].messageId);
+    previousMessage
+      .edit({ components: [] })
+      .catch(err =>
+        logger.error(
+          "An error occured removing embeds from the previous message:",
+          err
+        )
+      );
   }
 
   return interaction.reply({
