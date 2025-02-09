@@ -92,7 +92,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   if (interaction.options.getSubcommand() === "ban") {
     const confessionId = interaction.options.getString("id")!;
 
-    if (dt.isBannedById(guildId, confessionId)) {
+    if (await dt.isBannedById(guildId, confessionId)) {
       return interaction
         .reply({
           content: "That user is already banned!",
@@ -101,7 +101,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         .catch(err => logger.error("A ban interaction error occured:", err));
     }
 
-    const result = dt.addBanById(guildId, confessionId);
+    const result = await dt.addBanById(guildId, confessionId);
 
     return interaction
       .reply({
@@ -116,7 +116,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   } else if (interaction.options.getSubcommand() === "banuser") {
     const { id: userId } = interaction.options.getUser("user")!;
 
-    const result = dt.addBanByUser(guildId, userId);
+    const result = await dt.addBanByUser(guildId, userId);
 
     return interaction
       .reply({
@@ -127,9 +127,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
     // /confessmod list
   } else if (interaction.options.getSubcommand() === "list") {
-    const bannedMembers = dt.getBans(guildId);
+    const bannedMembers = await dt.getBans(guildId);
 
-    const determineContent = () => {
+    const determineContent = async () => {
       if (!bannedMembers.length) {
         return "There are no bans.";
       }
@@ -140,11 +140,14 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       let idHead = "\n" + heading("Confessions:", HeadingLevel.Two);
       let idCount = false;
       for (const member of bannedMembers) {
-        if (member.method === BanReason.ByUser) {
-          userHead += "\n" + `<@${member.user}>`;
+        if (member.reason === BanReason.ByUser) {
+          userHead += "\n" + `<@${member.authorId}>`;
           userCount = true;
-        } else if (member.method === BanReason.ById) {
-          const confession = dt.getConfession(guildId, member.confessionId!)!;
+        } else if (member.reason === BanReason.ById) {
+          const confession = (await dt.getConfession(
+            guildId,
+            member.confessionId!
+          ))!;
           idHead += `\nConfession ${inlineCode(member.confessionId!)}: ${italic(confession.content)}`;
           idCount = true;
         }
@@ -160,14 +163,14 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
     return interaction
       .reply({
-        content: determineContent(),
+        content: await determineContent(),
         ...messageOpts
       })
       .catch(err => logger.error("A banlist interaction error occured:", err));
 
     // /confessmod pardon <id>
   } else if (interaction.options.getSubcommand() === "pardon") {
-    const result = dt.removeBanById(
+    const result = await dt.removeBanById(
       guildId,
       interaction.options.getString("id")!
     );
@@ -185,7 +188,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   } else if (interaction.options.getSubcommand() === "pardonuser") {
     const { id: userId } = interaction.options.getUser("user")!;
 
-    const result = dt.removeBanByUser(guildId, userId);
+    const result = await dt.removeBanByUser(guildId, userId);
 
     return interaction
       .reply({

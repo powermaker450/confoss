@@ -26,7 +26,7 @@ import { messageOpts } from "./constants";
 import { submitConfession } from "./commandutils";
 import { contextCommands } from "./contextcommands";
 
-export const dt = new StoreMan(StoreMan.checkFile());
+export const dt = new StoreMan();
 const logger = new Logger("Main");
 
 BotClient.once("ready", client => {
@@ -74,25 +74,7 @@ BotClient.on(Events.InteractionCreate, async interaction => {
   }
 });
 
-BotClient.on(Events.MessageDelete, async message => {
-  const guildId = message.guild?.id!;
-  if (!dt.getGuildInfo(guildId)) {
-    return;
-  }
-
-  try {
-    const messageId = message.id;
-    const confessions = dt.getGuildInfo(guildId)?.confessions!;
-
-    for (const confession of confessions) {
-      if (confession.messageId === messageId) {
-        dt.adminDelConfession(guildId, confession.id);
-      }
-    }
-  } catch (err) {
-    logger.error("An error occured:", err);
-  }
-});
+// BotClient.on(Events.MessageDelete, async message => {});
 
 // Submit Confession button
 BotClient.on(Events.InteractionCreate, async interaction => {
@@ -107,7 +89,7 @@ BotClient.on(Events.InteractionCreate, async interaction => {
 
   if (requestSubmit) {
     // Check if the user is banned from confessions before showing the modal
-    dt.isBannedByUser(interaction.guild?.id!, interaction.user.id)
+    (await dt.isBannedByUser(interaction.guild?.id!, interaction.user.id))
       ? interaction
           .reply({
             content: "You are banned from confessions in this server!",

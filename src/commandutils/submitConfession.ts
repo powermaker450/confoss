@@ -27,7 +27,7 @@ export async function submitConfession(
   const { id: userId, displayName: username } = interaction.user;
 
   // If the user is banned in this guild, don't let them post
-  if (dt.isBannedByUser(guildId, userId)) {
+  if (await dt.isBannedByUser(guildId, userId)) {
     return interaction.reply({
       content: "You are banned from confessions in this server!",
       ...messageOpts
@@ -35,7 +35,7 @@ export async function submitConfession(
   }
 
   // If no guild info is present for this guild, don't let the user post
-  if (!dt.getGuildInfo(guildId)) {
+  if (!(await dt.getGuildInfo(guildId))) {
     return interaction.reply({
       content:
         "The bot hasn't been set up yet! Ask the server admins to set it up.",
@@ -43,8 +43,7 @@ export async function submitConfession(
     });
   }
 
-  const confessChannel = dt.getGuildInfo(guildId)!.settings.confessChannel;
-  const adminChannel = dt.getGuildInfo(guildId)?.settings.modChannel;
+  const { confessChannel, modChannel } = (await dt.getGuildInfo(guildId))!;
 
   const isAttachment = (text: string | null) =>
     text && (text.startsWith("http://") || text.startsWith("https://"));
@@ -125,10 +124,10 @@ export async function submitConfession(
     components: [actionRow]
   });
 
-  adminChannel &&
-    (await (BotClient.channels.cache.get(adminChannel!) as TextChannel).send({
+  modChannel &&
+    (BotClient.channels.cache.get(modChannel!) as TextChannel).send({
       embeds: [adminConfessionEmbed]
-    }));
+    });
 
   const fields: readonly [Message, string, string, string, string] = [
     message,
@@ -139,26 +138,34 @@ export async function submitConfession(
   ];
 
   attachmentContent
-    ? dt.addConfession(...fields, attachmentContent)
-    : dt.addConfession(...fields);
+    ? await dt.addConfession(...fields, attachmentContent)
+    : await dt.addConfession(...fields);
 
-  const confessionsLength = dt.getGuildInfo(guildId)!.confessions.length;
+  const confessions = await dt.getConfessions(guildId);
+  logger.log(confessions);
+  logger.log(confessions.length);
 
   // If there are 2 or more confessions, remove the previous confession's button components
-  if (confessionsLength >= 2) {
-    (BotClient.channels.cache.get(confessChannel) as TextChannel).messages
-      .fetch(
-        dt.getGuildInfo(guildId)!.confessions[confessionsLength - 2].messageId
-      )
-      .then(message => {
-        message.edit({ components: [] });
-      })
-      .catch(err => {
-        logger.error(
-          "An error occured removing embeds from the previous message:",
-          err
-        );
-      });
+  if (confessions.length > 1) {
+    const channel = BotClient.channels.cache.get(confessChannel);
+    logger.log(confessions);
+    const messageId = confessions[confessions.length - 2].messageId;
+    if (!channel || !channel.isTextBased()) {
+      logger.error(`Channel ${confessChannel} is not a text channel.`);
+      return;
+    }
+
+    const previousMessage = await channel.messages.fetch(messageId);
+
+    try {
+      await previousMessage.edit({ components: [] });
+      logger.log(`Removed embeds from previous message ${messageId}`);
+    } catch (err) {
+      logger.error(
+        "An error occured removing embeds from the previous message:",
+        err
+      );
+    }
   }
 
   return interaction.reply({

@@ -1,4 +1,6 @@
 .env
 node_modules/
-dist/
 persist/
+dist/
+prisma/migrations/
+prisma/persist/

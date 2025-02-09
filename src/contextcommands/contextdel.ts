@@ -48,7 +48,10 @@ export async function execute(interaction: ContextMenuCommandInteraction) {
     });
   }
 
-  const { id: confessionId } = dt.getConfessionById(guildId!, targetId)!;
+  const { id: confessionId } = (await dt.getConfessionById(
+    guildId!,
+    targetId
+  ))!;
 
   try {
     deleteConfession(interaction, confessionId);

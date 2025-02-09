@@ -16,16 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import fs from "fs";
 import crypto from "crypto";
-import {
-  BanReason,
-  Confession,
-  ConfessionBan,
-  GuildData,
-  GuildSettings
-} from "./types";
-import { DATA_DIR } from "./config";
+import { BanReason, GuildSettings } from "./types";
 import {
   bold,
   CommandInteraction,
@@ -34,362 +26,378 @@ import {
   TextChannel,
   unorderedList
 } from "discord.js";
+import { Guild, Confession, PrismaClient, Ban } from "@prisma/client";
 import Logger from "../utils/Logger";
 import { BotClient } from "../bot";
 
 export class StoreMan {
-  public static readonly fullPath: string =
-    (DATA_DIR ?? "./persist/") + "data.json";
+  private static readonly VERSION_NOTE = "v0.2.0";
   private static logger = new Logger("StoreMan");
-  private data: GuildData[];
 
-  constructor(existingData: GuildData[] = []) {
-    this.data = existingData;
-  }
+  private client: PrismaClient;
 
   public static genId = () => crypto.randomBytes(2).toString("hex");
 
-  public static toConfession(
-    message: Message,
-    id: string,
-    author: string,
-    authorId: string,
-    content: string,
-    attachment?: string
-  ): Confession {
-    return {
-      id: id,
-      messageId: message.id,
-      author: author,
-      authorId: authorId,
-      content: content,
-      attachment: attachment
-    };
+  public constructor() {
+    this.client = new PrismaClient();
   }
 
-  public static checkFile(): GuildData[] {
-    let final: GuildData[];
-
-    if (fs.existsSync(StoreMan.fullPath)) {
-      const data = fs.readFileSync(StoreMan.fullPath);
-
-      // Read the file if it isn't empty, else set final to an empty array
-      final = !data.toString().trim() ? [] : JSON.parse(data.toString());
-    } else {
-      // If the directory doesn't exist, make it
-      !fs.existsSync(DATA_DIR ?? "./persist/") &&
-        fs.mkdirSync(DATA_DIR ?? "./persist/");
-      fs.createWriteStream(StoreMan.fullPath);
-      final = [];
-    }
-
-    return final;
-  }
-
-  public async saveFile(): Promise<void> {
-    fs.writeFile(
-      StoreMan.fullPath,
-      JSON.stringify(this.data, null, 2),
-      "utf8",
-      err => err && StoreMan.logger.error("A write error occured:", err)
+  /**
+   * Check if a guild is set up.
+   *
+   * @param guildId - The ID of the guild to check
+   *
+   * @returns True if the guild is already set up, false if otherwise
+   */
+  public async checkSetup(guildId: string): Promise<boolean> {
+    const result = await this.client.guild.findFirst({ where: { guildId } });
+    StoreMan.logger.log(
+      `Guild ${guildId} ${result ? "has" : "has not"} completed setup.`
     );
+
+    // Don't need the result, just the presence of it, cast to boolean
+    return !!result;
   }
 
-  // Checks if a guild is not set up
-  public checkSetup(guildId: string): boolean {
-    for (const guild of this.data) {
-      if (guild.id === guildId) {
-        return true;
-      }
-    }
+  public async sendReleaseNotes(): Promise<void> {
+    const guilds = await this.client.guild.findMany();
 
-    return false;
-  }
-
-  // Sets up a guild and stores it in the persistent file
-  public setup(guildId: string, opts: GuildSettings): void {
-    this.data.push({
-      id: guildId,
-      confessions: [],
-      settings: opts,
-      versionNote: "v0.1.1"
-    });
-
-    this.saveFile();
-  }
-
-  // Clear the settings for a given guild
-  public clearSettings(guildId: string): void {
-    this.data = this.data.filter(guild => {
-      return guild.id !== guildId;
-    });
-    this.saveFile();
-  }
-
-  public getGuildInfo(guildId: string): GuildData | null {
-    for (const guild of this.data) {
-      if (guild.id === guildId) {
-        return guild;
-      }
-    }
-
-    return null;
-  }
-
-  public sendReleaseNotes(): void {
-    for (const guild of this.data) {
-      if (!guild.settings.modChannel) {
+    for (const { guildId, modChannel, versionNote } of guilds) {
+      if (!modChannel) {
         return;
       }
 
-      if (guild.versionNote !== "v0.1.1") {
-        // TODO: Manual release notes for now
-        const channel = BotClient.channels.cache.get(guild.settings.modChannel);
+      if (versionNote !== StoreMan.VERSION_NOTE) {
+        const channel = BotClient.channels.cache.get(modChannel);
+        if (!(channel instanceof TextChannel)) {
+          StoreMan.logger.error(
+            `Mod channel for guild ${guildId} is not a text channel.`
+          );
+          continue;
+        }
+
         const content =
-          heading("🎉 Release v0.1.1\n") +
+          heading(`🎉 Release ${StoreMan.VERSION_NOTE}\n`) +
           unorderedList([
-            "No notable changes with this release, just popping in to say hi! :)",
-            "You'll get updates about future releases right here in the mod channel!"
+            "The bot now uses SQLite instead of JSON as it's storage system.",
+            "Speed and reliability have be improved!"
           ]) +
           "\n\n" +
           bold("Full Changelog: ") +
-          "https://codeberg.org/powermaker450/confoss/commits/tag/v0.1.1";
+          "https://codeberg.org/powermaker450/confoss/commits/tag/v0.2.0";
 
-        (channel as TextChannel).send(content).catch(StoreMan.logger.log);
-        guild.versionNote = "v0.1.1";
+        try {
+          await channel.send(content);
+          StoreMan.logger.log(`Sent changelog to guild ${guildId}.`);
+        } catch (err) {
+          StoreMan.logger.error(err);
+          continue;
+        }
+
+        await this.client.guild.update({
+          where: { guildId },
+          data: { versionNote: StoreMan.VERSION_NOTE }
+        });
       }
     }
-
-    this.saveFile();
   }
 
-  // Attempts to add a confession. Returns true if the confession is sent, false if otherwise.
-  public addConfession(
+  /**
+   * Adds a guild and it's settings to the database.
+   *
+   * @param guildId - The ID of the guild to add
+   * @param GuildSettings - The ID of the confession channel and optionally the mod channel
+   */
+  public async setup(
+    guildId: string,
+    { confessChannel, modChannel }: GuildSettings
+  ): Promise<void> {
+    const result = await this.client.guild.create({
+      data: { guildId, confessChannel, modChannel, versionNote: "v0.1.1" }
+    });
+    StoreMan.logger.log(`Setup completed for guild ${guildId}:`, result);
+  }
+
+  /**
+   * Removes a guild and it's data from the database.
+   *
+   * @param guildId - The ID of the guild to erase
+   */
+  public async clearSettings(guildId: string): Promise<void> {
+    const { count: confessionCount } = await this.client.confession.deleteMany({
+      where: { guildId }
+    });
+    const { count: banCount } = await this.client.ban.deleteMany({
+      where: { guildId }
+    });
+
+    await this.client.guild.delete({ where: { guildId } });
+    StoreMan.logger.log(
+      `Sucessfully erased data for guild ${guildId}. (${confessionCount} confessions, ${banCount} bans)`
+    );
+  }
+
+  /**
+   * Gets the information of a guild
+   *
+   * @param guildId - The ID of the guild to get
+   *
+   * @returns - The guildId, confessChannel, modChannel, and versionNote of the guild if it exists
+   */
+  public async getGuildInfo(guildId: string): Promise<Guild | null> {
+    const result = await this.client.guild.findFirst({ where: { guildId } });
+    result
+      ? StoreMan.logger.log("Got guild:", result)
+      : StoreMan.logger.log(`Did not find a guild for id ${guildId}.`);
+
+    return result;
+  }
+
+  public async addConfession(
     message: Message,
     id: string,
     author: string,
     authorId: string,
     content: string,
     attachment?: string
-  ): boolean {
+  ): Promise<boolean> {
     const { id: guildId } = message.guild!;
+    const { id: messageId } = message;
 
-    for (const guild of this.data) {
-      if (guild.id === guildId) {
-        // If the author's user ID is in the ban list, don't let them post a confession.
-        if (this.isBannedByUser(guildId, author)) {
-          return false;
-        }
+    const ban = await this.client.ban.findFirst({
+      where: { guildId, authorId }
+    });
 
-        guild.confessions.push(
-          StoreMan.toConfession(
-            message,
-            id,
-            author,
-            authorId,
-            content,
-            attachment
-          )
-        );
-        this.saveFile();
-        return true;
-      }
+    if (ban) {
+      StoreMan.logger.log(
+        `User ${authorId} is banned from submitting confessions in guild ${guildId}`
+      );
+      return false;
     }
 
-    throw new Error(
-      `No guild with id ${id} was found. Something's pretty wrong.`
-    );
+    const result = await this.client.confession.create({
+      data: { id, messageId, author, authorId, guildId, content, attachment }
+    });
+    StoreMan.logger.log("Created confession:", result);
+
+    return true;
   }
 
-  public getConfession(
+  public async getConfession(
     guildId: string,
-    confessionId: string
-  ): Confession | null {
-    for (const guild of this.data) {
-      if (guild.id === guildId) {
-        for (const confession of guild.confessions) {
-          if (confession.id === confessionId) {
-            return confession;
-          }
-        }
-      }
-    }
+    id: string
+  ): Promise<Confession | null> {
+    const result = await this.client.confession.findFirst({
+      where: { guildId, id }
+    });
+    result
+      ? StoreMan.logger.log("Got confession:", result)
+      : StoreMan.logger.log(
+          `Confession not found. (Guild: ${guildId}, Confession ID: ${id})`
+        );
 
-    return null;
+    return result;
   }
 
-  public getConfessionById(
+  public async getConfessions(guildId: string): Promise<Confession[]> {
+    const result = await this.client.confession.findMany({
+      where: { guildId }
+    });
+    StoreMan.logger.log(`Got confessions for guild ${guildId}:`, result);
+
+    return result;
+  }
+
+  public async getConfessionById(
     guildId: string,
     messageId: string
-  ): Confession | null {
-    for (const guild of this.data) {
-      if (guild.id === guildId) {
-        for (const confession of guild.confessions) {
-          if (confession.messageId === messageId) {
-            return confession;
-          }
-        }
-      }
-    }
+  ): Promise<Confession | null> {
+    const result = await this.client.confession.findFirst({
+      where: { guildId, messageId }
+    });
+    result
+      ? StoreMan.logger.log("Got confession:", result)
+      : StoreMan.logger.log(
+          `Confession not found. (Guild: ${guildId}, Message: ${messageId})`
+        );
 
-    return null;
+    return await this.client.confession.findFirst({
+      where: { guildId, messageId }
+    });
   }
 
-  // Attempts to delete a confession. If it is sucessfully deleted, returns true, else false.
-  public delConfesssion(
-    { guild, user }: CommandInteraction,
-    confessionId: string
-  ): boolean {
-    const guildId = guild?.id;
-    const userId = user.id;
+  /**
+   * Delete a confession from the database.
+   *
+   * @param interaction - Used to obtain the guild and authorId
+   * @param id - The confession ID to delete
+   *
+   * @returns true if the confession was sucessfully deleted, false if otherwise.
+   */
+  public async delConfesssion(
+    { guild, user: { id: authorId } }: CommandInteraction,
+    id: string
+  ): Promise<boolean> {
+    const { id: guildId } = guild!;
+    const result = await this.client.confession.delete({
+      where: { guildId, authorId, id }
+    });
 
-    for (const guild of this.data) {
-      if (guild.id === guildId) {
-        for (const confession of guild.confessions) {
-          if (confession.authorId === userId) {
-            guild.confessions = guild.confessions.filter(confession => {
-              return confession.id !== confessionId;
-            });
+    result
+      ? StoreMan.logger.log("Deleted confession:", result)
+      : StoreMan.logger.log(
+          `Unable to delete confession. (Guild: ${guildId}, Author: ${authorId}, Confession ID: ${id})`
+        );
 
-            this.saveFile();
-            return true;
-          }
-        }
-      }
-    }
-
-    return false;
+    // Don't need the result, just the presence of it, cast to boolean
+    return !!result;
   }
 
-  public adminDelConfession(guildId: string, confessionId: string): void {
-    for (const guild of this.data) {
-      if (guild.id === guildId) {
-        guild.confessions = guild.confessions.filter(confession => {
-          return confession.id !== confessionId;
-        });
-
-        this.saveFile();
-      }
-    }
+  /**
+   * Delete a confession from the database as an admin.
+   *
+   * @param guildId - The ID of the guild to delete from
+   * @param id - The ID of the confession to delete
+   */
+  public async adminDelConfession(guildId: string, id: string): Promise<void> {
+    const result = await this.client.confession.delete({
+      where: { guildId, id }
+    });
+    StoreMan.logger.log("Deleted confession:", result);
   }
 
   // Check if a certain user is banned within a guild.
-  public isBannedByUser(guildId: string, userId: string): boolean {
-    for (const guild of this.data) {
-      if (guild.id === guildId) {
-        for (const ban of guild.settings.bans) {
-          if (ban.user === userId) {
-            return true;
-          }
-        }
-      }
-    }
+  public async isBannedByUser(
+    guildId: string,
+    authorId: string
+  ): Promise<boolean> {
+    const result = await this.client.ban.findFirst({
+      where: { guildId, authorId }
+    });
+    StoreMan.logger.log(
+      `Author ID ${authorId} is ${result ? "banned" : "not banned"} in guild ${guildId}.`
+    );
 
-    return false;
+    // Don't need the result, just the presence of it, cast to boolean
+    return !!result;
   }
 
-  public isBannedById(guildId: string, confessionId: string): boolean {
-    for (const guild of this.data) {
-      if (guild.id === guildId) {
-        for (const ban of guild.settings.bans) {
-          if (ban.confessionId === confessionId) {
-            return true;
-          }
-        }
-      }
-    }
+  public async isBannedById(
+    guildId: string,
+    confessionId: string
+  ): Promise<boolean> {
+    const result = await this.client.ban.findFirst({
+      where: { guildId, confessionId }
+    });
+    StoreMan.logger.log(
+      `Confession ID ${confessionId} is ${result ? "banned" : "not banned"} in guild ${guildId}.`
+    );
 
-    return false;
+    // Don't need the result, just the presence of it, cast to boolean
+    return !!result;
   }
 
-  public getBans(guildId: string): ConfessionBan[] {
-    for (const guild of this.data) {
-      if (guild.id === guildId) {
-        return guild.settings.bans;
-      }
-    }
+  public async getBans(guildId: string): Promise<Ban[]> {
+    const result = await this.client.ban.findMany({ where: { guildId } });
+    StoreMan.logger.log(`Got bans for guild ${guildId}:`, result);
 
-    return [];
+    return result;
   }
 
-  // Attempts to ban a user from confessions.
-  public addBanById(guildId: string, confessionId: string): boolean {
-    const confession = this.getConfession(guildId, confessionId);
+  /**
+   * Ban a user by confession id.
+   *
+   * @param guildId - The ID of the guild to ban from
+   * @param confessionId - The ID of the confession to ban for
+   */
+  public async addBanById(
+    guildId: string,
+    confessionId: string
+  ): Promise<boolean> {
+    const alreadyBanned = await this.isBannedById(guildId, confessionId);
 
-    for (const guild of this.data) {
-      if (guild.id === guildId) {
-        if (confession) {
-          // Only add the user to the ban list if they aren't banned already
-          !this.isBannedByUser(guildId, confession.authorId) &&
-            guild.settings.bans.push({
-              user: confession.authorId,
-              confessionId: confessionId,
-              method: BanReason.ById
-            });
-
-          this.saveFile();
-          return true;
-        }
-      }
+    if (alreadyBanned) {
+      StoreMan.logger.log(
+        `Confession ${confessionId} is already banned in guild ${guildId}`
+      );
+      return false;
     }
 
-    return false;
+    const { authorId } = await this.client.confession.findFirstOrThrow({
+      where: { guildId, id: confessionId }
+    });
+    const result = await this.client.ban.create({
+      data: { guildId, authorId, confessionId, reason: BanReason.ById }
+    });
+    StoreMan.logger.log("Banned user:", result);
+
+    return true;
   }
 
-  public addBanByUser(guildId: string, userId: string): boolean {
-    for (const guild of this.data) {
-      if (guild.id === guildId) {
-        // Only add the user to the ban list if they aren't banned already
-        !this.isBannedByUser(guildId, userId) &&
-          guild.settings.bans.push({
-            user: userId,
-            method: BanReason.ByUser
-          });
+  public async addBanByUser(
+    guildId: string,
+    authorId: string
+  ): Promise<boolean> {
+    const alreadyBanned = await this.isBannedByUser(guildId, authorId);
 
-        this.saveFile();
-        return true;
-      }
+    if (alreadyBanned) {
+      StoreMan.logger.log(
+        `User ${authorId} is already banned in guild ${guildId}`
+      );
+      return false;
     }
 
-    return false;
+    const result = await this.client.ban.create({
+      data: { guildId, authorId, reason: BanReason.ByUser }
+    });
+    StoreMan.logger.log("Banned user:", result);
+
+    return true;
   }
 
-  // Attempts to pardon a user from a ban. If sucessfully completed, returns true, false if otherwise.
-  public removeBanById(guildId: string, confessionId: string): boolean {
-    for (const guild of this.data) {
-      if (guild.id === guildId) {
-        if (this.getConfession(guildId, confessionId)) {
-          guild.settings.bans = guild.settings.bans.filter(ban => {
-            return (
-              ban.user !== this.getConfession(guildId, confessionId)?.authorId!
-            );
-          });
+  /**
+   * Unban a user from confessions.
+   *
+   * @param guildId - The ID of the guild to reference
+   * @param confessionId - The confession to unban for
+   *
+   * @returns True if the user was pardoned, false if otherwise
+   */
+  public async removeBanById(
+    guildId: string,
+    confessionId: string
+  ): Promise<boolean> {
+    const alreadyBanned = !(await this.isBannedById(guildId, confessionId));
 
-          this.saveFile();
-          return true;
-        }
-      }
+    if (alreadyBanned) {
+      return false;
     }
 
-    return false;
+    const { authorId } = await this.client.ban.findFirstOrThrow({
+      where: { guildId, confessionId }
+    });
+    const result = await this.client.ban.delete({
+      where: { guildId, confessionId, authorId }
+    });
+    StoreMan.logger.log("Unbanned confession:", result);
+
+    return true;
   }
 
-  public removeBanByUser(guildId: string, userId: string): boolean {
-    for (const guild of this.data) {
-      if (guild.id === guildId) {
-        for (const ban of guild.settings.bans) {
-          if (ban.method === BanReason.ByUser && ban.user === userId) {
-            guild.settings.bans = guild.settings.bans.filter(ban => {
-              return ban.user !== userId;
-            });
+  public async removeBanByUser(
+    guildId: string,
+    authorId: string
+  ): Promise<boolean> {
+    const alreadyBanned = !(await this.isBannedByUser(guildId, authorId));
 
-            this.saveFile();
-            return true;
-          }
-        }
-      }
+    if (alreadyBanned) {
+      return false;
     }
 
-    return false;
+    StoreMan.logger.log(
+      "Unbanned user:",
+      await this.client.ban.delete({ where: { guildId, authorId } })
+    );
+    return true;
   }
 }
