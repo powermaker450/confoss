@@ -138,24 +138,34 @@ export async function submitConfession(
   ];
 
   attachmentContent
-    ? dt.addConfession(...fields, attachmentContent)
-    : dt.addConfession(...fields);
+    ? await dt.addConfession(...fields, attachmentContent)
+    : await dt.addConfession(...fields);
 
   const confessions = await dt.getConfessions(guildId);
+  logger.log(confessions);
+  logger.log(confessions.length);
 
   // If there are 2 or more confessions, remove the previous confession's button components
-  if (confessions.length >= 2) {
-    const previousMessage = await (
-      BotClient.channels.cache.get(confessChannel) as TextChannel
-    ).messages.fetch(confessions[confessions.length - 2].messageId);
-    previousMessage
-      .edit({ components: [] })
-      .catch(err =>
-        logger.error(
-          "An error occured removing embeds from the previous message:",
-          err
-        )
+  if (confessions.length > 1) {
+    const channel = BotClient.channels.cache.get(confessChannel);
+    logger.log(confessions);
+    const messageId = confessions[confessions.length - 2].messageId;
+    if (!channel || !channel.isTextBased()) {
+      logger.error(`Channel ${confessChannel} is not a text channel.`);
+      return;
+    }
+
+    const previousMessage = await channel.messages.fetch(messageId);
+
+    try {
+      await previousMessage.edit({ components: [] });
+      logger.log(`Removed embeds from previous message ${messageId}`);
+    } catch (err) {
+      logger.error(
+        "An error occured removing embeds from the previous message:",
+        err
       );
+    }
   }
 
   return interaction.reply({
