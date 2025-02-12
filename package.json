@@ -1,6 +1,6 @@
 {
   "name": "confess",
-  "version": "1.0.0",
+  "version": "0.2.0",
   "description": "a confession bot for discord",
   "main": "./dist/main.js",
   "scripts": {
@@ -11,7 +11,7 @@
     "migrate": "node ./dist/scripts/migrateData.js"
   },
   "author": "powermaker450",
-  "license": "AGPLv3",
+  "license": "AGPL-3.0-only",
   "dependencies": {
     "@prisma/client": "^6.2.1",
     "chalk": "^4.1.0",
