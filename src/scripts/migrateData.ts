@@ -18,7 +18,7 @@
 
 import fs from "fs";
 import Logger from "../utils/Logger";
-import { GuildData } from "../storeman";
+import { GuildData, StoreMan } from "../storeman";
 import { PrismaClient } from "@prisma/client";
 
 const client = new PrismaClient();
@@ -36,7 +36,7 @@ async function migrate() {
       guildId,
       confessChannel,
       modChannel,
-      versionNote: versionNote ?? "v0.1.1"
+      versionNote: versionNote ?? StoreMan.VERSION_NOTE
     })
   );
   const dbConfessions = [];

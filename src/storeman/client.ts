@@ -18,20 +18,14 @@
 
 import crypto from "crypto";
 import { BanReason, GuildSettings } from "./types";
-import {
-  bold,
-  CommandInteraction,
-  heading,
-  Message,
-  TextChannel,
-  unorderedList
-} from "discord.js";
+import { CommandInteraction, Message, TextChannel } from "discord.js";
 import { Guild, Confession, PrismaClient, Ban } from "@prisma/client";
 import Logger from "../utils/Logger";
 import { BotClient } from "../bot";
+import fetchReleaseNotes from "../utils/fetchReleaseNotes";
 
 export class StoreMan {
-  private static readonly VERSION_NOTE = "v0.2.0";
+  public static readonly VERSION_NOTE = "v0.2.0";
   private static logger = new Logger("StoreMan");
 
   private client: PrismaClient;
@@ -61,6 +55,7 @@ export class StoreMan {
 
   public async sendReleaseNotes(): Promise<void> {
     const guilds = await this.client.guild.findMany();
+    const { body } = await fetchReleaseNotes();
 
     for (const { guildId, modChannel, versionNote } of guilds) {
       if (!modChannel) {
@@ -76,18 +71,8 @@ export class StoreMan {
           continue;
         }
 
-        const content =
-          heading(`🎉 Release ${StoreMan.VERSION_NOTE}\n`) +
-          unorderedList([
-            "The bot now uses SQLite instead of JSON as it's storage system.",
-            "Speed and reliability have be improved!"
-          ]) +
-          "\n\n" +
-          bold("Full Changelog: ") +
-          "https://codeberg.org/powermaker450/confoss/commits/tag/v0.2.0";
-
         try {
-          await channel.send(content);
+          await channel.send(body);
           StoreMan.logger.log(`Sent changelog to guild ${guildId}.`);
         } catch (err) {
           StoreMan.logger.error(err);
@@ -113,7 +98,12 @@ export class StoreMan {
     { confessChannel, modChannel }: GuildSettings
   ): Promise<void> {
     const result = await this.client.guild.create({
-      data: { guildId, confessChannel, modChannel, versionNote: "v0.1.1" }
+      data: {
+        guildId,
+        confessChannel,
+        modChannel,
+        versionNote: StoreMan.VERSION_NOTE
+      }
     });
     StoreMan.logger.log(`Setup completed for guild ${guildId}:`, result);
   }
