@@ -5,7 +5,8 @@
   "main": "./dist/main.js",
   "scripts": {
     "build": "rm -rf ./dist && tsc -p .",
-    "start": "node ./dist/main.js",
+    "generate": "npx prisma migrate dev --name init && npx prisma migrate deploy",
+    "start": "if [ -f ./prisma/persist/data.db ]; then node ./dist/main.js; else npm run generate && node ./dist/main.js; fi",
     "refresh": "node ./dist/scripts/refreshGuild.js",
     "migrate": "node ./dist/scripts/migrateData.js",
     "prettier": "if prettier -v >/dev/null 2>&1; then prettier . --write; else npx prettier . --write; fi",
