@@ -1,0 +1,16 @@
+services:
+  confoss:
+    build: .
+    container_name: confoss
+    volumes: 
+      - db:/app/prisma/persist
+    # Specify your bot token and ID with an environment file
+    env_file: .env
+    # or directly in the compose file 
+    # environment:
+    #  - BOT_TOKEN=
+    #  - BOT_ID=
+    #  - LOG_LEVEL=3 # optional 
+
+volumes:
+  db:
