@@ -2,7 +2,7 @@
 
 1. Clone and enter the repo:
 ```bash
-git clone https://codeberg.org/powermaker450/confoss
+git clone https://codeberg.org/povario/confoss
 
 cd confoss
 ```

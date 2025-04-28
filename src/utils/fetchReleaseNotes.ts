@@ -1,6 +1,6 @@
 /*
  * Confoss: Anonymous confessions for Discord, free as in freedom and price!
- * Copyright (C) 2024 powermaker450
+ * Copyright (C) 2024 povario
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -36,7 +36,7 @@ interface ReleaseNotes {
 
 export default async function fetchReleaseNotes(): Promise<ReleaseNotes> {
   const res = await fetch(
-    `https://codeberg.org/api/v1/repos/powermaker450/confoss/releases/latest`
+    `https://codeberg.org/api/v1/repos/povario/confoss/releases/latest`
   );
 
   return await res.json();

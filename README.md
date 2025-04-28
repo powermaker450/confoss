@@ -14,7 +14,7 @@ This is a fun little side-project I started after wanting to have my own Discord
 ## Usage
 
 You can add the bot to your guild by simply [installing the app.](https://discord.com/oauth2/authorize?client_id=1294342313941794900)
-Alternatively, you can also [host the bot yourself.](https://codeberg.org/powermaker450/confoss/src/branch/main/HOSTING.md)
+Alternatively, you can also [host the bot yourself.](https://codeberg.org/povario/confoss/src/branch/main/HOSTING.md)
 
 After adding the bot to your guild, simply run `/setup`. The bot will ask questions about what channels you want to use.
 

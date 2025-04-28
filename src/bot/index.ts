@@ -1,6 +1,6 @@
 /*
  * Confoss: Anonymous confessions for Discord, free as in freedom and price!
- * Copyright (C) 2024 powermaker450
+ * Copyright (C) 2024 povario
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published

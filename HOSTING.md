@@ -5,5 +5,5 @@
 - **If not installed with Docker, `pnpm` is needed.**
 
 # Methods
-- [Using Docker (recommended)](https://codeberg.org/powermaker450/confoss/src/branch/main/DOCKER.md)
-- [Using NodeJS](https://codeberg.org/powermaker450/confoss/src/branch/main/BARE.md)
+- [Using Docker (recommended)](https://codeberg.org/povario/confoss/src/branch/main/DOCKER.md)
+- [Using NodeJS](https://codeberg.org/povario/confoss/src/branch/main/BARE.md)

@@ -10,7 +10,7 @@
     "refresh": "node ./dist/scripts/refreshGuild.js",
     "migrate": "node ./dist/scripts/migrateData.js"
   },
-  "author": "powermaker450",
+  "author": "povario",
   "license": "AGPL-3.0-only",
   "dependencies": {
     "@prisma/client": "^6.2.1",
